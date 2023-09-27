@@ -8,7 +8,7 @@ fn main() -> eframe::Result<()> {
 
     let native_options = eframe::NativeOptions::default();
     eframe::run_native(
-        "Zhouyi!",
+        "Vice Versa AI Reader",
         native_options,
         Box::new(|cc| Box::new(zhouyi_ui::TemplateApp::new(cc))),
     )

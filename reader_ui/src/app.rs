@@ -8,7 +8,6 @@ use env_logger::fmt::Color;
 
 use rfd;
 use serde_json;
-use zhouyi::show_text_divinate;
 use egui_extras::{Size,StripBuilder};
 
 mod communicate;
@@ -23,20 +22,25 @@ use communicate::{query_login,get_history,
 pub struct TemplateApp {
     // settings, meta-information
     lang:String,
-    divination_type: String,
     is_dark_theme: bool,
 
-    // contents of the zhouyi
-    gua_name: String,
-    gua: String,
-    duan: String,
-    xang: String,
-    xang_up: String,
-    xang_bottom: String,
-    subgua_up: String,
-    subgua_bottom: String,
-    yaos: Vec<String>,
-    yaos_xang: Vec<String>,
+
+    // account related
+    email:String,
+    pwd:String,
+    pwd2:String,
+
+    login_state:i8,
+    user_type:String,
+    activation_state:String,
+    utype_ls:Vec<String>,
+    activation_ls:Vec<String>,
+    is_open_activate_help:bool,
+
+    // Reader related
+    reading_records: HashMap<String, ()>
+
+
 
     // contents of user inputs.
     inps: String,
