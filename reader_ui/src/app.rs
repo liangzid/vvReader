@@ -19,6 +19,14 @@ use communicate::{query_login,get_history,
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]// if we add new fields, give them default values when deserializing old state
+pub struct Heading{
+    head_name: String,
+    head_position: i32,
+}
+
+/// We derive Deserialize/Serialize so we can persist app state on shutdown.
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(default)]// if we add new fields, give them default values when deserializing old state
 pub struct TemplateApp {
     // settings, meta-information
     lang:String,
@@ -29,7 +37,6 @@ pub struct TemplateApp {
     email:String,
     pwd:String,
     pwd2:String,
-
     login_state:i8,
     user_type:String,
     activation_state:String,
@@ -38,49 +45,19 @@ pub struct TemplateApp {
     is_open_activate_help:bool,
 
     // Reader related
-    reading_records: HashMap<String, ()>
-
-
+    reading_records: HashMap<String, // real file name
+        (
+            String, // book name
+            i32, // current read position
+            Vec<Heading>, // heading structure
+        )>,
 
     // contents of user inputs.
-    inps: String,
-    is_visual: bool,
-    historys: Vec<(
-        HashMap<String, String>,
-        Vec<String>,
-        Vec<String>,
-        String,                // inps
-        String,                // time
-        String,                //place
-        String,                // analysis
-        Vec<(String, String)>, // comments with (text, time)
-    )>,
-
-    place: String,
-    analyse: String,
-    comments: Vec<(String, String)>,
-    temp_comment: String,
-    pop_open:bool,
-    current_point:usize,
-    is_open_import:bool,
+    current_fname:String,
     is_open_export:bool,
     is_open_login:bool,
     is_open_signup:bool,
     is_open_payment_qr:bool,
-
-     //account related
-     email:String,
-     pwd:String,
-     pwd2:String,
-
-    login_state:i8,
-    user_type:String,
-    activation_state:String,
-    utype_ls:Vec<String>,
-    activation_ls:Vec<String>,
-    is_open_activate_help:bool,
-     
-    hm:HashMap<String,String>,
 
     // Example stuff:
     label: String,
@@ -92,56 +69,11 @@ pub struct TemplateApp {
 impl Default for TemplateApp {
     fn default() -> Self {
         Self {
-            // Example stuff:
-            label: "Hello World!".to_owned(),
-            value: 2.7,
-
-        lang:"en".to_owned(),
-	    divination_type:"dayanshi".to_owned(),
+	    lang:"zh".to_owned(),
 	    is_dark_theme:false,
-	    gua_name: "乾".to_owned(),
-	    gua: "乾，元亨，利貞。".to_owned(),
-	    duan:"《彖》曰：大哉乾元，萬物資始，乃統天。雲行雨施，品物流形，大明終始，六位時成，時乘六龍以御天。乾道變化，各正性命，保合大和，乃利貞。".to_owned(),
-	    xang:"《象》曰：天行健，君子以自強不息。".to_owned(),
-	    xang_up:"天".to_owned(),
-	    xang_bottom:"天".to_owned(),
-	    subgua_up:"乾".to_owned(),
-	    subgua_bottom:"乾".to_owned(),
-	    yaos:vec![
-            "初九：潛龍勿用。".to_owned(),
-            "九二：見龍再田，利見大人。".to_owned(),
-            "九三：君子終日乾乾，夕惕若，厲，無咎。".to_owned(),
-            "九四：或躍在淵，無咎。".to_owned(),
-            "九五：飛龍在天，利見大人。".to_owned(),
-            "上九：亢龍有悔。".to_owned(),
-            "用九：見群龍無首，吉。".to_owned()
-            ],
-	    yaos_xang:vec!["《象》曰：潛龍勿用，陽在下也。".to_owned(),
-            "《象》曰：見龍在田，德施普也。".to_owned(),
-            "《象》曰：終日乾乾，反復道也。".to_owned(),
-            "《象》曰：或躍在淵，進無咎也。".to_owned(),
-            "《象》曰：飛龍在天，大人造也。".to_owned(),
-            "《象》曰：亢龍有悔，盈不可久也。".to_owned(),
-            "《象》曰：用九，天德不可為首也。".to_owned()],
-	    inps:"明天的我会快乐么".to_owned(),
-        is_visual:false,
-        historys:vec![],
-	    place:"无关".to_owned(),
-	    analyse:"".to_owned(),
-	    comments:vec![],
-	    temp_comment:"".to_owned(),
-	    pop_open:false,
-	    current_point:0,
-	    is_open_import:false,
-	    is_open_export:false,
-        is_open_login:true,
-        is_open_signup:false,
-        is_open_payment_qr:false,
-
-        //account related
-        email:"".to_owned(),
-        pwd:"".to_owned(),
-        pwd2:"".to_owned(),
+	    email:"".to_owned(),
+	    pwd:"".to_owned(),
+	    pwd2:"".to_owned(),
 	    login_state:0,
 	    user_type:"nothing".to_owned(),
 	    activation_state:"not_activate".to_owned(),
@@ -150,8 +82,18 @@ impl Default for TemplateApp {
 	    activation_ls:vec!["not_activate".to_owned(),
 			       "activate".to_owned(),
 	    ],
-        is_open_activate_help:false,
-	    hm:HashMap::new(),
+            is_open_activate_help:false,
+
+	    reading_records: HashMap::new(),
+	    current_fname:"".to_owned();
+
+	    is_open_export:false,
+            is_open_login:true,
+            is_open_signup:false,
+            is_open_payment_qr:false,
+
+	    label:"example".to_owned(),
+	    value: 2.7,
         }
     }
 }
@@ -204,50 +146,29 @@ impl eframe::App for TemplateApp {
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         let Self {
-            label,
-            value,
 
-            lang,
-            divination_type,
-            is_dark_theme,
-            gua_name,
-            gua,
-            duan,
-            xang,
-            xang_up,
-            xang_bottom,
-            subgua_up,
-            subgua_bottom,
-            yaos,
-            yaos_xang,
-            inps,
-            is_visual,
-            historys,
-            place,
-            analyse,
-            comments,
-            temp_comment,
-	    pop_open,
-	    current_point,
-	    is_open_import,
-	    is_open_export,
-        is_open_login,
-        is_open_signup,
-	    is_open_payment_qr,
+	    lang,
+	    is_dark_theme,
 
-        //account related
-        email,
-        pwd,
-        pwd2,
+	    email,
+	    pwd,pwd2,
 	    login_state,
 	    user_type,
 	    activation_state,
+	    utype_ls,
+	    activation_ls,
+	    is_open_activate_help,
+	    reading_records,
 
-        utype_ls,
-        activation_ls,
-        is_open_activate_help,
+	    current_fname,
+	    is_open_export,
+	    is_open_login,
+	    is_open_signup,
+	    is_open_payment_qr,
 
-	    hm,
+	    label,
+	    value
+
         } = self;
         let now = Local::now().format("%F-%T").to_string();
         // let mut place: String = "无关".to_owned();
