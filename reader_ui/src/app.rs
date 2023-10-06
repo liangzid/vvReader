@@ -1,4 +1,6 @@
 use std::{collections::HashMap, hash::Hash};
+use std::default::{Default, self};
+
 
 use chrono::{DateTime, Local};
 use egui::{
@@ -8,6 +10,7 @@ use env_logger::fmt::Color;
 
 use rfd;
 use serde_json;
+use serde;
 use egui_extras::{Size,StripBuilder};
 
 mod communicate;
@@ -17,7 +20,8 @@ use communicate::{query_login,get_history,
 };
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Default,Debug)]
+#[derive(serde::Deserialize, serde::Serialize,)]
 #[serde(default)]// if we add new fields, give them default values when deserializing old state
 pub struct Heading{
     head_name: String,
@@ -55,6 +59,7 @@ pub struct TemplateApp {
     // contents of user inputs.
     current_fname:String,
     is_open_export:bool,
+    is_open_import:bool,
     is_open_login:bool,
     is_open_signup:bool,
     is_open_payment_qr:bool,
@@ -85,9 +90,10 @@ impl Default for TemplateApp {
             is_open_activate_help:false,
 
 	    reading_records: HashMap::new(),
-	    current_fname:"".to_owned();
+	    current_fname:"".to_owned(),
 
 	    is_open_export:false,
+	    is_open_import:false,
             is_open_login:true,
             is_open_signup:false,
             is_open_payment_qr:false,
@@ -162,6 +168,7 @@ impl eframe::App for TemplateApp {
 
 	    current_fname,
 	    is_open_export,
+	    is_open_import,
 	    is_open_login,
 	    is_open_signup,
 	    is_open_payment_qr,
@@ -171,9 +178,6 @@ impl eframe::App for TemplateApp {
 
         } = self;
         let now = Local::now().format("%F-%T").to_string();
-        // let mut place: String = "无关".to_owned();
-        // let mut analyse=String::from("");
-        // let mut comments:Vec<(String,String)>=vec![];
         if true {
 	    let tt_login= match lang.as_str(){
 		"zh"=>"登录，以同步您的私有信息",
@@ -318,6 +322,7 @@ _=>ui.label("Password Again:"),
 
             egui::CentralPanel::default().show(ctx, |ui| {
 
+		// set theme
                 let mut color_blue: Color32;
                 if *is_dark_theme {
                     ctx.set_visuals(egui::Visuals::dark());
@@ -347,36 +352,6 @@ _=>ui.label("Password Again:"),
 		        *is_open_payment_qr=true;
 		    }
 
-                // if ui.button("Change Theme").clicked() {
-                //     *is_dark_theme = !*is_dark_theme;
-                // }
-                let tt_prompt=match lang.as_str(){"zh"=>"输入占卜内容",
-                    _=>"Input your divination events."};
-                ui.label(tt_prompt);
-                ui.text_edit_multiline(inps);
-                let mut track_divination = false;
-                ui.horizontal(|ui| {
-		    match lang.as_str(){"zh"=>ui.label("卜法"),_=>ui.label("Divination method")};
-		    match lang.as_str(){
-			"zh"=>{
-                    track_divination |= ui
-                        .radio_value(divination_type, "dayanshi".to_owned(), "大衍筮法")
-                        .clicked();
-                    track_divination |= ui
-                        .radio_value(divination_type, "coin".to_owned(), "铜钱爻")
-                        .clicked();
-			}
-			_=>{
-                    track_divination |= ui
-                        .radio_value(divination_type, "dayanshi".to_owned(), "Dayanshi-method")
-                        .clicked();
-                    track_divination |= ui
-                        .radio_value(divination_type, "coin".to_owned(), "Coin-method")
-                        .clicked();
-
-			}}
-                });
-
                 let mut track_lang = true;
                 // let mut lang.as_str() = "zh".to_owned();
                 ui.horizontal(|ui| {
@@ -386,54 +361,9 @@ _=>ui.label("Password Again:"),
                         .radio_value(lang, "en".to_owned(), "English")
                         .clicked();
                 });
-                ui.horizontal(|ui| {
-		    match lang.as_str() {"zh"=>ui.label("占卜时刻"),_=>ui.label("Divination Time"),};
-                    let label = egui::widgets::Label::new(now.clone());
-                    ui.add(label);
-                    ui.ctx().request_repaint();
-                });
-
-                ui.horizontal(|ui| {
-		    match lang.as_str() {"zh"=>ui.label("占卜地点"),_=>ui.label("Divination Position"),};
-		    ui.horizontal(|ui|{
-			ui.set_width(230.0);
-			ui.add(egui::TextEdit::singleline(place));
-		    });
-                });
-
-                let divinate_b =match lang.as_str(){
-		    "zh"=>egui::Button::new("卜筮之"),
-		    _=>egui::Button::new("Divinate it!"),
-		} ;
-                if ui.add(divinate_b).clicked() {
-                    *is_visual = true;
-		    // obtain the results of Gua
-		    let res = show_text_divinate(divination_type,
-                 inps);
-
-		    // at current results to history
-		    *hm = res
-			.0
-			.iter()
-			.map(|(k, v)| (String::from(*k), v.clone()))
-			.collect();
-                    // update the divination results
-                    *gua_name = res.0.get("name").unwrap().to_string();
-                    *gua = res.0.get("gua").unwrap().to_string();
-                    *duan = res.0.get("duan").unwrap().to_string();
-                    *xang = res.0.get("xang").unwrap().to_string();
-                    *xang_up = res.0.get("xang_top").unwrap().to_string();
-                    *xang_bottom = res.0.get("xang_bottom").unwrap().to_string();
-                    *subgua_up = res.0.get("gua_top").unwrap().to_string();
-                    *subgua_bottom = res.0.get("gua_bottom").unwrap().to_string();
-                    *yaos = res.1;
-                    *yaos_xang = res.2;
-
-                }
 
                 ui.separator();
                 // add the export and import button.
-		match lang.as_str() {"zh"=>ui.heading("卜筮记录管理"),_=>ui.heading("Records Management"),};
                 ui.horizontal(|ui|{
 		    match lang.as_str() {"zh"=>ui.label("当前状态："),_=>ui.label("Current State"),};
 		    if (*login_state).eq(&0){
@@ -449,7 +379,7 @@ _=>ui.label("Password Again:"),
 		match lang.as_str(){
 		    "zh" =>{
 
-                ui.label("卜筮：✔");
+                ui.label("：閱讀✔");
                 ui.label("数据于当前设备缓存：✔");
                 if activation_state=="not_activate"{
                     ui.label("数据导出/导入：✖");
@@ -465,7 +395,7 @@ _=>ui.label("Password Again:"),
 
 		    _=>{
 
-                ui.label("Divination：✔");
+                ui.label("Reading：✔");
                 ui.label("Store history in local deivce：✔");
                 if activation_state=="not_activate"{
                     ui.label("Records Import/Export：✖");
@@ -528,8 +458,9 @@ _=>ui.label("Password Again:"),
                         }
                         else{
                             if let Some(path) = rfd::FileDialog::new().save_file() {
-                                let res = serde_json::to_string(historys).unwrap();
-                                std::fs::write(path, res);
+				// todo: export.
+                                // let res = serde_json::to_string(historys).unwrap();
+                                // std::fs::write(path, res);
                             }
                         }
                     }
@@ -554,20 +485,7 @@ _=>ui.label("Password Again:"),
             let img_buffer=image.to_rgba8();
             let size = (image.width() as usize, image.height() as usize);
             let pixels = img_buffer.into_vec();
-            // assert_eq!(size.0 * size.1 * 4, pixels.len());
-            // let pixels: Vec<_> = pixels
-            //     .chunks_exact(4)
-            //     .map(|p| egui::Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
-            //     .collect();
-
-            // // Allocate a texture:
-            // let wechat_texture = frame
-            //     .tex_allocator()
-            //     .alloc_srgba_premultiplied(size, &pixels);
-
             let size=[size.0,size.1];
-            // let pixels=pixels.iter().map(|x| x/64)
-            // .collect::<Vec<_>>();
             let x=egui::ColorImage::from_rgba_premultiplied(size,&pixels);
 
 			let wechat_texture: egui::TextureHandle =
@@ -587,20 +505,7 @@ _=>ui.label("Password Again:"),
             let img_buffer=image.to_rgba8();
             let size = (image.width() as usize, image.height() as usize);
             let pixels = img_buffer.into_vec();
-            // assert_eq!(size.0 * size.1 * 4, pixels.len());
-            // let pixels: Vec<_> = pixels
-            //     .chunks_exact(4)
-            //     .map(|p| egui::Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
-            //     .collect();
-
-            // // Allocate a texture:
-            // let wechat_texture = frame
-            //     .tex_allocator()
-            //     .alloc_srgba_premultiplied(size, &pixels);
-
             let size=[size.0,size.1];
-            // let pixels=pixels.iter().map(|x| x/64)
-            // .collect::<Vec<_>>();
             let x=egui::ColorImage::from_rgba_premultiplied(size,&pixels);
 
 			let wechat_texture: egui::TextureHandle =
@@ -626,8 +531,9 @@ _=>ui.label("Password Again:"),
                         }
                         else{
                             if let Some(path) = rfd::FileDialog::new().pick_file() {
-                                let content = std::fs::read_to_string(path).unwrap();
-                                *historys = serde_json::from_str(&content).unwrap();
+                                // let content = std::fs::read_to_string(path).unwrap();
+                                // *historys = serde_json::from_str(&content).unwrap();
+				// todo! import
                             }
                         }
                     }
@@ -661,186 +567,22 @@ _=>ui.label("Password Again:"),
 			_=>"clear"
 		    };
                     if ui.button(tt_clear).clicked() {
-                        *historys = vec![];
-                        *comments = vec![];
-			*place = "".to_owned();
-			*analyse = "".to_owned();
-			*temp_comment = "".to_owned();
-			*pop_open = false;
-			*current_point = 0;
-			*is_open_import = false;
-			*is_open_export = false;
-			*is_visual=false;
+			// todo: clear
+                        // *historys = vec![];
+                        // *comments = vec![];
+			// *place = "".to_owned();
+			// *analyse = "".to_owned();
+			// *temp_comment = "".to_owned();
+			// *pop_open = false;
+			// *current_point = 0;
+			// *is_open_import = false;
+			// *is_open_export = false;
+			// *is_visual=false;
 			
                     }
                 });
 
                 ui.separator();
-
-		let tt_h=match lang.as_str(){
-		    "zh"=>"往-卜",
-		    _=>"History"
-		};
-                ui.heading(tt_h);
-                let dfc_b=match lang.as_str(){"zh"=>"从云端下载",_=>"Download from cloud"};
-                if ui.button(dfc_b).clicked(){
-                    let rt=tokio::runtime::Builder::new_current_thread()
-                    .enable_all().build().unwrap();
-                    rt.block_on(async{
-                        let mut res=get_history(&email,).await;
-                        *historys=res;
-                    });
-                }
-
-                let mer_b=match lang.as_str(){"zh"=>"本地信息同步",_=>"Sync to cloud"};
-                if ui.button(mer_b).clicked(){
-                    let rt=tokio::runtime::Builder::new_current_thread()
-                    .enable_all().build().unwrap();
-                    tokio::runtime::Runtime::block_on(&rt,async{
-                        let mut res=merge_records(&email,historys).await;
-                    });
-                }
-
-                let scroll = egui::ScrollArea::vertical()
-                    .max_height(400.0)
-                    .auto_shrink([false; 2])
-                    .show(ui, |ui| {
-                        ui.vertical(|ui| {
-                            let mut newhis = historys.clone();
-                            newhis.reverse();
-			    let mut i_x:u8=0;
-                            for x in newhis {
-                                let mut t_job = egui::text::LayoutJob::default();
-                                t_job.append(
-                                    &(x.0.get("name").unwrap().clone() + "   "),
-                                    0.0,
-                                    TextFormat {
-                                        color: strong_color,
-                                        ..Default::default()
-                                    },
-                                );
-
-                                t_job.append(
-                                    &x.4.clone(),
-                                    0.0,
-                                    TextFormat {
-                                        color: default_color,
-                                        background: Color32::from_rgb(239, 83, 80),
-                                        ..Default::default()
-                                    },
-                                );
-
-                                t_job.append(
-                                    "   ",
-                                    0.0,
-                                    TextFormat {
-                                        color: strong_color,
-                                        ..Default::default()
-                                    },
-                                );
-
-                                t_job.append(
-                                    &x.5.clone(),
-                                    0.0,
-                                    TextFormat {
-                                        color: default_color,
-                                        background: Color32::from_rgb(124, 179, 66),
-                                        ..Default::default()
-                                    },
-                                );
-
-                                ui.collapsing(t_job, |ui| {
-                                    // question
-                                    ui.horizontal(|ui| {
-					match lang.as_str(){"zh"=>ui.label("求卜： "),
-					_=>ui.label("Event divanated:"),};
-                                        
-                                        ui.colored_label(color_blue.clone(), x.3.clone());
-                                    });
-                                    ui.separator();
-                                    ui.horizontal(|ui| {
-					match lang.as_str(){"zh"=>ui.label("得卦"),
-					_=>ui.label("Results of GUA:"),};
-                                        ui.label(x.0.get("name").unwrap().clone())
-                                            .on_hover_cursor(egui::CursorIcon::Help)
-                                            .on_hover_ui(|ui| {
-                                                ui.heading(x.0.get("name").unwrap().clone());
-                                                ui.label(x.0.get("gua").unwrap().clone());
-                                                ui.colored_label(
-                                                    Color32::from_rgb(128, 140, 255),
-                                                    x.0.get("duan").unwrap().clone(),
-                                                );
-                                                ui.colored_label(
-                                                    Color32::from_rgb(128, 128, 12),
-                                                    x.0.get("xang").unwrap().clone(),
-                                                );
-
-                                                ui.separator();
-
-                                                for i_yao in 0..yaos.len() {
-                                                    ui.colored_label(
-                                                        Color32::from_rgb(3, 111, 4),
-                                                        x.1.clone().get(i_yao).unwrap(),
-                                                    );
-                                                    ui.colored_label(
-                                                        Color32::from_rgb(111, 12, 4),
-                                                        x.2.clone().get(i_yao).unwrap(),
-                                                    );
-                                                    ui.set_min_height(300.0);
-                                                }
-                                            });
-                                    });
-                                    ui.separator();
-                                    // analysis
-                                    ui.horizontal(|ui| {
-					match lang.as_str(){"zh"=>ui.label("分析："),
-					_=>ui.label("Analysis:"),};
-                                        ui.colored_label(color_blue.clone(), x.6.clone());
-                                    });
-                                    ui.separator();
-                                    // comments
-				    let tt_com=match lang.as_str(){
-					"zh"=>"批注/应验",
-					_=>"Comments/Whether comes true"
-				    };
-                                    ui.collapsing(tt_com, |ui| {
-                                        egui::ScrollArea::vertical().max_height(100.)
-					    .min_scrolled_width(200.0).show(
-                                            ui,
-                                            |ui| {
-
-						// comments
-						let tt_com=match lang.as_str(){
-						    "zh"=>"记录之",
-						    _=>"Record it now."
-						};
-                                                if ui.button(tt_com).clicked() {
-						    *pop_open=true;
-						    *current_point=(*historys).len()-1-(i_x as usize);
-                                                }
-                                                ui.vertical(|ui| {
-                                                    let mut xx = x.7.clone();
-                                                    xx.reverse();
-                                                    for com in xx {
-                                                        ui.collapsing(com.1, |ui| {
-                                                            ui.label(com.0);
-                                                        });
-                                                    }
-                                                });
-                                            },
-                                        );
-                                    })
-                                });
-                                // // if gua_head.clicked(){
-                                // //     *is_visual=true;
-                                // // }
-                                // ui.label((x.3).clone());
-                                // ui.label(x.4.clone());
-                                // ui.label(x.5.clone());
-				i_x+=1
-                            }
-                        });
-                    });
 
 		let tt_done=match lang.as_str(){"zh"=>"毕",_=>"Done."};
 		let tt_cp=match lang.as_str(){"zh"=>"复制之",_=>"Copy it."};
@@ -854,7 +596,8 @@ _=>ui.label("Password Again:"),
 			let mut read_text:String="".to_owned();
 			ui.text_edit_multiline(&mut read_text);
 			if ui.button(tt_done).clicked(){
-			    *historys = serde_json::from_str(&read_text).unwrap();
+			    // *historys = serde_json::from_str(&read_text).unwrap();
+			    // todo: import with text
 			}
 		    });
             let tt_exports=match lang.as_str(){
@@ -870,14 +613,15 @@ _=>ui.label("Password Again:"),
 			    .auto_shrink([false;2])
 			    .show(ui, |ui| {
 			
-			let res = serde_json::to_string(historys).unwrap();
+				let res="".to_owned();
 			ui.vertical(|ui|{
 			    let mut is_copyed=false;
 			    if ui.button(tt_cp).clicked(){
 				is_copyed=true;
 				use clipboard::{ClipboardContext,ClipboardProvider};
 				let mut ctx:ClipboardContext = ClipboardProvider::new().unwrap();
-				let res = serde_json::to_string(historys).unwrap();
+				// let res = serde_json::to_string(historys).unwrap();
+				let res="".to_owned();
 				// ctx.set_contents(res).unwrap();
 				ui.output_mut(|o| o.copied_text = res.to_string());
 			    }
@@ -887,75 +631,6 @@ _=>ui.label("Password Again:"),
 			    });
 		    });
 		
-						let tt_com=match lang.as_str(){
-						    "zh"=>"记录之",
-						    _=>"Record it now."
-						};
-						let tt_qiubu=match lang.as_str(){
-						    "zh"=>"求卜：",
-						    _=>"Things divinated:"
-						};
-		// pop a new window to add the comments.
-		egui::Window::new(tt_com)
-		    .default_width(320.0)
-		    .open(pop_open)
-		    .show(ctx, |ui| {
-			ui.horizontal(|ui| {
-			    ui.code(tt_qiubu);
-			    ui.label((historys.get(*current_point as usize).unwrap()).3.clone());
-			});
-			ui.separator();
-            let temp_map=historys.get(*current_point as usize)
-            .unwrap().0.clone();
-			ui.heading(temp_map.get("name").unwrap().clone());
-			ui.label(temp_map.get("gua").unwrap().clone()).on_hover_text(
-			    temp_map.get("duan").unwrap().clone() +
-                 &temp_map.get("xang").unwrap().clone(),
-			);
-			ui.separator();
-            let temp_yaos=historys.get(*current_point).unwrap().1.clone();
-            let temp_yxs=historys.get(*current_point).unwrap().2.clone();
-			for i_yao in 0..temp_yaos.len() {
-			    ui.colored_label(
-				Color32::from_rgb(3, 111, 4),
-				temp_yaos.get(i_yao).unwrap(),
-			    )
-			    .on_hover_text(
-				temp_yxs.get(i_yao).unwrap(),
-			    );
-			    ui.set_min_height(200.0);
-			}
-			ui.separator();
-			ui.vertical(|ui| {
-		match lang.as_str(){"zh"=>ui.heading("解语"), _=>ui.heading("Your analysis:"),};
-                    
-                    ui.colored_label(color_blue.clone(),historys.get(*current_point).unwrap()
-                    .6.clone());
-                });
-		    ui.separator();
-		    ui.vertical(|ui| {
-			let mut xx = (*(historys.get(*current_point as usize).unwrap())).7.clone();
-			xx.reverse();
-			for com in xx {
-			    ui.collapsing(com.1, |ui| {
-				ui.label(com.0);
-			    });
-			}
-		    });
-		    ui.separator();
-		    ui.horizontal(|ui| {
-			ui.text_edit_singleline(
-			    temp_comment,
-			);
-			let tt_add=match lang.as_str(){"zh"=>"添加",_=>"Add"};
-			if ui.button(tt_add).clicked() {
-			    (*historys)[*current_point as usize].7.push((
-				temp_comment.clone(),
-				now.clone(),
-			    ));
-			}
-		    });
-		});
 
                 // ui.heading("eframe template");
                 // ui.hyperlink("https://github.com/emilk/eframe_template");
@@ -966,69 +641,6 @@ _=>ui.label("Password Again:"),
                 // egui::warn_if_debug_build(ui);
             });
         }
-
-			let tt_res=match lang.as_str(){"zh"=>"结果",_=>"Results"};
-					    egui::Window::new(tt_res)
-                                                        .default_width(340.0)
-                                                        .open(is_visual)
-                                                        .show(ctx, |ui| {
-                ui.horizontal(|ui| {
-                    
-                    let tt_qiubu=match lang.as_str(){
-                        "zh"=>"求卜：",
-                        _=>"Things divinated:"
-                    };
-                    ui.code(tt_qiubu);
-                    ui.label(inps.clone());
-                });
-                ui.separator();
-                ui.heading(gua_name);
-                ui.label(gua.clone());
-                ui.colored_label(Color32::from_rgb(128, 140, 255), duan);
-                ui.colored_label(Color32::from_rgb(128, 128, 12), xang);
-
-                ui.separator();
-
-                for i_yao in 0..yaos.len() {
-                    ui.colored_label(Color32::from_rgb(3, 111, 4), yaos.get(i_yao).unwrap());
-                    ui.colored_label(Color32::from_rgb(111, 12, 4), yaos_xang.get(i_yao).unwrap());
-                    ui.set_min_height(300.0);
-                }
-                ui.separator();
-                ui.vertical(|ui| {
-		    match lang.as_str(){
-			"zh"=>{
-                    ui.heading("解易");
-                    ui.label("  1. 以卦意察之\n  2. 以诸爻审之\n  3. 写下预言");
-			}
-			_=>{
-                    ui.heading("Analyse it:");
-                    ui.label("  1. Observe it in the context of the oracle's meaning.\n  2. Examine it by the hexagrams.\n  3. Write down your prophecy.");
-
-			}
-
-		    }
-                    // ui.label("例：\n  1. ")
-                    let response=ui.add(egui::TextEdit::multiline(analyse));
-		    if response.lost_focus(){
-                    (*historys).push((
-                        hm.clone(),
-                        yaos.clone(),
-                        yaos_xang.clone(),
-                        inps.clone(),
-                        String::from(now.clone()),
-                        place.clone(),
-                        analyse.clone(),
-                        comments.clone(),
-                    ));
-
-		    }
-
-                });
-                // if ui.button("回返之").clicked() {
-                //     *is_visual = false;
-                // }
-            });
 
         if false {
             egui::Window::new("Window").show(ctx, |ui| {
