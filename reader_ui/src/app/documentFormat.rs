@@ -1,4 +1,6 @@
 use std::default::{Default,self};
+use egui::Layout;
+use egui::TextBuffer;
 use serde_json;
 use serde;
 use egui::TextFormat;
@@ -9,8 +11,8 @@ use egui::text::LayoutJob;
 #[derive(Default,Debug)]
 #[derive(serde::Deserialize, serde::Serialize,)]
 #[serde(default)]// if we add new fields, give them default values when deserializing old state
-pub struct DocLabled {
-    raw_text:String,
+pub struct DocLabeled {
+    pub raw_text:String,
     highlights:Vec<(usize, // begin index
 		    usize, // end index
 		    (u8,u8,u8), // R,G,B
@@ -23,7 +25,14 @@ pub struct DocLabled {
     default_color:Color32,
 }
 
-impl DocLabled{
+impl DocLabeled{
+
+    pub fn new(raw_text:String,highlights:Vec<(usize,usize,(u8,u8,u8))>,
+	    notes:Vec<(usize,usize,String)>,current_index:usize,
+	    default_color:Color32)->DocLabeled{
+	DocLabeled{raw_text:raw_text,highlights:highlights,
+	notes:notes,current_index:current_index,default_color:default_color}
+    }
 
     pub fn update_highlight(&mut self,
 			    bg_idx:usize,
@@ -88,7 +97,7 @@ impl DocLabled{
 	}
 
 	//2. sort the vectors 
-	self.rendering();
+	// self.rendering();
     }
     
     pub fn update_notes(&mut self,
@@ -100,12 +109,24 @@ impl DocLabled{
     }
 
     /// render the struct text into the egui style rich texts.
-    pub fn rendering(&self){
+    pub fn rendering(&self)->LayoutJob{
 	let light_color=Color32::WHITE;
 
 	let mut job = LayoutJob::default();
 
 	let mut bgn_idx=0;
+	let mut end_idx=self.raw_text.len();
+
+	if self.highlights.len()==0{
+	    job.append(&self.raw_text.char_range(bgn_idx..end_idx),
+			0.0,
+			TextFormat {
+			    color: self.default_color,
+			    ..Default::default() 
+			},
+	    );
+	}
+
 	for record in self.highlights.iter(){
 	    if bgn_idx!=record.0{
 		job.append(&self.raw_text[bgn_idx..=record.0],
@@ -129,7 +150,7 @@ impl DocLabled{
 	    );
 	    bgn_idx=record.1;
 	}
-
+	job
     }
 
 }

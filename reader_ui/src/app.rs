@@ -20,7 +20,7 @@ use communicate::{query_login,get_history,
 		  signup,activate
 };
 mod documentFormat;
-use documentFormat::DocLabled;
+use documentFormat::DocLabeled;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(Default,Debug)]
@@ -53,11 +53,12 @@ pub struct TemplateApp {
 
     // Reader related
     reading_records: HashMap<String, // real file name
-        (
-            String, // book name
-            i32, // current read position
-            Vec<Heading>, // heading structure
-        )>,
+    (
+	bool, // its window is open or not.
+	    // warning: This might be large!
+	    DocLabeled, // document related informaiton
+    )
+        >,
 
     // contents of user inputs.
     current_fname:String,
@@ -66,6 +67,9 @@ pub struct TemplateApp {
     is_open_login:bool,
     is_open_signup:bool,
     is_open_payment_qr:bool,
+
+    default_color:Color32,
+    strong_color:Color32,
 
     // Example stuff:
     label: String,
@@ -100,6 +104,9 @@ impl Default for TemplateApp {
             is_open_login:true,
             is_open_signup:false,
             is_open_payment_qr:false,
+
+	    default_color:Color32::LIGHT_GRAY,
+	    strong_color:Color32::WHITE,
 
 	    label:"example".to_owned(),
 	    value: 2.7,
@@ -176,6 +183,9 @@ impl eframe::App for TemplateApp {
 	    is_open_signup,
 	    is_open_payment_qr,
 
+	    default_color,
+	    strong_color,
+
 	    label,
 	    value
 
@@ -183,7 +193,10 @@ impl eframe::App for TemplateApp {
 
 
 	// here we test the reading window.
-	open_one_reader(&ctx, "111test");
+
+
+
+	
 
         let now = Local::now().format("%F-%T").to_string();
         if true {
@@ -330,6 +343,52 @@ _=>ui.label("Password Again:"),
 
             egui::CentralPanel::default().show(ctx, |ui| {
 
+
+		let tt_loadlocalf=match lang.as_str(){
+		    "zh"=>"上传本地文件",
+		    _=>"Upload file from your device",
+		};
+		if ui.button(tt_loadlocalf).clicked(){
+		    // open a file picker and then load the files.
+		    if let Some(uploadpath) = rfd::FileDialog::new()
+			.pick_file(){
+			    let ct=std::fs::
+			    read_to_string(uploadpath.clone())
+				.unwrap();
+			    if ! uploadpath.clone().ends_with(".txt"){
+		    let tt_file_us=match lang.as_str(){
+			"zh"=>"不支持的文件类型",
+			_=>"Unsupported file types"
+		    };
+				
+				ui.colored_label(egui::Color32::RED,
+						 tt_file_us,
+				);
+				
+			    }
+
+			    // println!("ct: {}", &ct);
+
+			    let mut doc=DocLabeled::new(
+				ct,vec![],
+				vec![],0,
+				(*default_color).clone(),
+			    );			    
+			    let newpth=uploadpath.clone();
+			    let fnme=newpth
+				.to_str().unwrap();
+   reading_records.insert(String::from(fnme),(true,doc));
+			    let temp_record=(*reading_records).get_mut(fnme).unwrap();
+			}
+		}
+
+		//rendering all reading windows
+		for rec in reading_records.iter_mut(){
+		    open_one_reader(&ctx, rec.0.as_str(),
+				    &mut rec.1.0,
+				    &mut rec.1.1);
+		}
+
 		// set theme
                 let mut color_blue: Color32;
                 if *is_dark_theme {
@@ -339,7 +398,8 @@ _=>ui.label("Password Again:"),
                     ctx.set_visuals(egui::Visuals::light());
                     color_blue = Color32::from_rgb(33, 24, 68);
                 }
-                let (default_color, strong_color) = if ui.visuals().dark_mode {
+                (*default_color, *strong_color) = if
+		    ui.visuals().dark_mode {
                     (Color32::LIGHT_GRAY, Color32::WHITE)
                 } else {
                     (Color32::DARK_GRAY, Color32::BLACK)
@@ -387,7 +447,9 @@ _=>ui.label("Password Again:"),
 		match lang.as_str(){
 		    "zh" =>{
 
-                ui.label("：閱讀✔");
+                ui.label("阅读：✔");
+                ui.label("高亮：✔");
+                ui.label("批注：✔");
                 ui.label("数据于当前设备缓存：✔");
                 if activation_state=="not_activate"{
                     ui.label("数据导出/导入：✖");
@@ -404,6 +466,8 @@ _=>ui.label("Password Again:"),
 		    _=>{
 
                 ui.label("Reading：✔");
+                ui.label("Highlight：✔");
+                ui.label("Comment：✔");
                 ui.label("Store history in local deivce：✔");
                 if activation_state=="not_activate"{
                     ui.label("Records Import/Export：✖");
@@ -673,17 +737,23 @@ pub fn code_view_ui(ui: &mut egui::Ui, mut code: &str) {
     );
 }
 
-pub fn open_one_reader(ctx:&Context, fname: &str){
+pub fn open_one_reader(ctx:&Context, fname: &str,
+		       is_open:&mut bool,
+		       docl:&mut DocLabeled){
     egui::Window::new(fname).default_open(true)
            .default_height(400.0).default_width(600.0)
-	   // .collapsible(true)
-	   // .constrain(true)
+	   .collapsible(true)
+	   .constrain(true)
+	   .open(is_open)
 	   .show(ctx, |ui|{
 	       egui::SidePanel::left("headline")
                    .resizable(true)
                    .default_width(200.0)
                    .show_inside(ui, |ui|{
+		       // ui.heading("Headline of Books");
+		       ui.vertical_centered(|ui|{
 		       ui.heading("Headline of Books");
+		       });
 		       egui::ScrollArea::vertical().show(ui, |ui|{
 			   ui.label("111111");
 			   ui.label("111111");
@@ -692,9 +762,11 @@ pub fn open_one_reader(ctx:&Context, fname: &str){
 		       });
 		   });
 	       egui::CentralPanel::default()
+		   // .show(ui, |ui|{
 		   .show_inside(ui, |ui|{
 		       egui::ScrollArea::vertical().show(ui, |ui|{
 			   ui.text_edit_multiline(&mut "11111111");
+			   render_selected_text(ui, docl);
 		       });
 	       });
 	       egui::SidePanel::right("notes")
@@ -712,9 +784,13 @@ pub fn open_one_reader(ctx:&Context, fname: &str){
 	   });
 }
 
-// pub fn render_selected_text(ui:egui::Ui,text:MyRichText){
-//     // ui.add(egui::TextEdit::multiline())
-// }
+pub fn render_selected_text(ui:&mut egui::Ui,docl:&mut DocLabeled){
+    
+    // ui.text_edit_multiline(&mut docl.rendering().as_str());
+    ui.label(docl.rendering());
+    ui.label("WWWWWWWWWWWWWWWWWWW");
+
+}
 
 
 #[allow(clippy::ptr_arg)] // false positive
