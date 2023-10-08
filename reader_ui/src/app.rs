@@ -3,6 +3,7 @@ use std::default::{Default, self};
 
 
 use chrono::{DateTime, Local};
+use egui::Context;
 use egui::{
     emath::align, util::History, Color32, FontData, FontDefinitions, FontFamily, TextFormat,
 };
@@ -18,6 +19,8 @@ use communicate::{query_login,get_history,
 		  push_record,merge_records,
 		  signup,activate
 };
+mod documentFormat;
+use documentFormat::DocLabled;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(Default,Debug)]
@@ -177,6 +180,11 @@ impl eframe::App for TemplateApp {
 	    value
 
         } = self;
+
+
+	// here we test the reading window.
+	open_one_reader(&ctx, "111test");
+
         let now = Local::now().format("%F-%T").to_string();
         if true {
 	    let tt_login= match lang.as_str(){
@@ -343,7 +351,7 @@ _=>ui.label("Password Again:"),
 			       _=>{ui.label("Theme:");}
 		    }
 		    ui.radio_value(is_dark_theme, false, "☀️").clicked();
-		    ui.radio_value(is_dark_theme, true, "🌙").clicked();
+		    ui.radio_value(is_dark_theme, true, "☪").clicked();
                 });
             let tt_pay=match lang.as_str(){
 		    "zh"=>"赞助本网站", _=>"Donate"
@@ -665,6 +673,48 @@ pub fn code_view_ui(ui: &mut egui::Ui, mut code: &str) {
     );
 }
 
+pub fn open_one_reader(ctx:&Context, fname: &str){
+    egui::Window::new(fname).default_open(true)
+           .default_height(400.0).default_width(600.0)
+	   // .collapsible(true)
+	   // .constrain(true)
+	   .show(ctx, |ui|{
+	       egui::SidePanel::left("headline")
+                   .resizable(true)
+                   .default_width(200.0)
+                   .show_inside(ui, |ui|{
+		       ui.heading("Headline of Books");
+		       egui::ScrollArea::vertical().show(ui, |ui|{
+			   ui.label("111111");
+			   ui.label("111111");
+			   ui.label("111111");
+			   ui.label("111111");
+		       });
+		   });
+	       egui::CentralPanel::default()
+		   .show_inside(ui, |ui|{
+		       egui::ScrollArea::vertical().show(ui, |ui|{
+			   ui.text_edit_multiline(&mut "11111111");
+		       });
+	       });
+	       egui::SidePanel::right("notes")
+                   .resizable(true)
+                   .default_width(200.0)
+                   .show_inside(ui, |ui|{
+		       ui.heading("Notes of Books");
+		       egui::ScrollArea::vertical().show(ui, |ui|{
+			   ui.label("111111");
+			   ui.label("222222");
+			   ui.label("111111");
+			   ui.label("111111");
+		       });
+		   });
+	   });
+}
+
+// pub fn render_selected_text(ui:egui::Ui,text:MyRichText){
+//     // ui.add(egui::TextEdit::multiline())
+// }
 
 
 #[allow(clippy::ptr_arg)] // false positive
