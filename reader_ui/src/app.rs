@@ -765,8 +765,7 @@ pub fn open_one_reader(ctx:&Context, fname: &str,
 		   // .show(ui, |ui|{
 		   .show_inside(ui, |ui|{
 		       egui::ScrollArea::vertical().show(ui, |ui|{
-			   ui.text_edit_multiline(&mut "11111111");
-			   render_selected_text(ui, docl);
+			   render_selected_text(ctx,ui, docl);
 		       });
 	       });
 	       egui::SidePanel::right("notes")
@@ -784,11 +783,32 @@ pub fn open_one_reader(ctx:&Context, fname: &str,
 	   });
 }
 
-pub fn render_selected_text(ui:&mut egui::Ui,docl:&mut DocLabeled){
+pub fn render_selected_text(ctx:&Context,ui:&mut egui::Ui,docl:&mut DocLabeled){
     
-    // ui.text_edit_multiline(&mut docl.rendering().as_str());
-    ui.label(docl.rendering());
-    ui.label("WWWWWWWWWWWWWWWWWWW");
+    let mut layouter=|ui: &egui::Ui, easy_mark:&str, wrap_width:f32|{
+
+	let mut job=docl.rendering();
+	// println!("easy_mark: {}", easy_mark);
+	// let mut job = LayoutJob::default();
+	// job.append(easy_mark, 0.0,
+	// 	   TextFormat{color: Color32::RED, ..Default::default()});
+             job.wrap.max_width = wrap_width; 
+             ui.fonts(|f| f.layout_job(job)) 
+    };
+
+    let te=egui::TextEdit::multiline(&mut docl.raw_text.clone().as_str())
+	   .desired_width(f32::INFINITY) 
+	   .layouter(&mut layouter).show(ui);
+
+    if let Some(cursor_range) = te.cursor_range{
+	use egui::TextBuffer as _;
+	let selected_chars = cursor_range.as_sorted_char_range();
+	println!("cursor_range:{:?}\n char_range:{:?}",&cursor_range,selected_chars);
+	if selected_chars.start!=selected_chars.end &&
+	ctx.input(|i|i.pointer.any_released()){
+	docl.update_highlight(selected_chars.start, selected_chars.end, (255,0,0));
+	}
+            };
 
 }
 
