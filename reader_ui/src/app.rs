@@ -237,10 +237,10 @@ impl eframe::App for TemplateApp {
                                 "nothing".to_owned(),
                                 "not_activate".to_owned(),
                             );
-                            // rt.block_on(async{
-                            //     // println!("email:{}，pwd:{}",&email,&pwd);
-                            //     res=query_login(&email,&pwd).await;
-                            // });
+                            rt.block_on(async{
+                                // println!("email:{}，pwd:{}",&email,&pwd);
+                                res=query_login(&email,&pwd).await;
+                            });
                             if res.0 == "Ok" {
                                 *login_state = res.1.parse().unwrap();
                                 *user_type = res.2;
@@ -328,9 +328,9 @@ impl eframe::App for TemplateApp {
                                 "not_activate".to_owned(),
                                 "nothing".to_owned(),
                             );
-                            // rt.block_on(async{
-                            // 	res=signup(&email,&pwd).await;
-                            // });
+                            rt.block_on(async{
+                        	res=signup(&email,&pwd).await;
+                            });
 
                             if res.0 == "Ok" {
                                 *login_state = res.1.parse().unwrap();
