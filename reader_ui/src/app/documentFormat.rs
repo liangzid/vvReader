@@ -156,6 +156,15 @@ impl DocLabeled{
 	    );
 	    bgn_idx=record.1;
 	}
+	if bgn_idx!=end_idx{
+	    job.append(&self.raw_text[bgn_idx..=end_idx-1],
+		       0.0,
+		       TextFormat {
+			   color:self.default_color,
+			   ..Default::default()
+		       },
+	    );
+	}
 	job
     }
 
