@@ -1,6 +1,5 @@
+use std::default::{self, Default};
 use std::{collections::HashMap, hash::Hash};
-use std::default::{Default, self};
-
 
 use chrono::{DateTime, Local};
 use egui::Context;
@@ -9,67 +8,63 @@ use egui::{
 };
 use env_logger::fmt::Color;
 
+use egui_extras::{Size, StripBuilder};
 use rfd;
-use serde_json;
 use serde;
-use egui_extras::{Size,StripBuilder};
+use serde_json;
 
 mod communicate;
-use communicate::{query_login,get_history,
-		  push_record,merge_records,
-		  signup,activate
-};
+use communicate::{activate, get_history, merge_records, push_record, query_login, signup};
 mod documentFormat;
 use documentFormat::DocLabeled;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
-#[derive(Default,Debug)]
-#[derive(serde::Deserialize, serde::Serialize,)]
-#[serde(default)]// if we add new fields, give them default values when deserializing old state
-pub struct Heading{
+#[derive(Default, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(default)] // if we add new fields, give them default values when deserializing old state
+pub struct Heading {
     head_name: String,
     head_position: i32,
 }
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
-#[serde(default)]// if we add new fields, give them default values when deserializing old state
+#[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct TemplateApp {
     // settings, meta-information
-    lang:String,
+    lang: String,
     is_dark_theme: bool,
 
-
     // account related
-    email:String,
-    pwd:String,
-    pwd2:String,
-    login_state:i8,
-    user_type:String,
-    activation_state:String,
-    utype_ls:Vec<String>,
-    activation_ls:Vec<String>,
-    is_open_activate_help:bool,
+    email: String,
+    pwd: String,
+    pwd2: String,
+    login_state: i8,
+    user_type: String,
+    activation_state: String,
+    utype_ls: Vec<String>,
+    activation_ls: Vec<String>,
+    is_open_activate_help: bool,
 
     // Reader related
-    reading_records: HashMap<String, // real file name
-    (
-	bool, // its window is open or not.
-	    // warning: This might be large!
-	    DocLabeled, // document related informaiton
-    )
-        >,
+    reading_records: HashMap<
+        String, // real file name
+        (
+            bool, // its window is open or not.
+            // warning: This might be large!
+            DocLabeled, // document related informaiton
+        ),
+    >,
 
     // contents of user inputs.
-    current_fname:String,
-    is_open_export:bool,
-    is_open_import:bool,
-    is_open_login:bool,
-    is_open_signup:bool,
-    is_open_payment_qr:bool,
+    current_fname: String,
+    is_open_export: bool,
+    is_open_import: bool,
+    is_open_login: bool,
+    is_open_signup: bool,
+    is_open_payment_qr: bool,
 
-    default_color:Color32,
-    strong_color:Color32,
+    default_color: Color32,
+    strong_color: Color32,
 
     // Example stuff:
     label: String,
@@ -81,35 +76,36 @@ pub struct TemplateApp {
 impl Default for TemplateApp {
     fn default() -> Self {
         Self {
-	    lang:"zh".to_owned(),
-	    is_dark_theme:false,
-	    email:"".to_owned(),
-	    pwd:"".to_owned(),
-	    pwd2:"".to_owned(),
-	    login_state:0,
-	    user_type:"nothing".to_owned(),
-	    activation_state:"not_activate".to_owned(),
-	    utype_ls:vec!["nothing".to_owned(),"regular".to_owned(),
-			  "VIP1".to_owned()],
-	    activation_ls:vec!["not_activate".to_owned(),
-			       "activate".to_owned(),
-	    ],
-            is_open_activate_help:false,
+            lang: "zh".to_owned(),
+            is_dark_theme: false,
+            email: "".to_owned(),
+            pwd: "".to_owned(),
+            pwd2: "".to_owned(),
+            login_state: 0,
+            user_type: "nothing".to_owned(),
+            activation_state: "not_activate".to_owned(),
+            utype_ls: vec![
+                "nothing".to_owned(),
+                "regular".to_owned(),
+                "VIP1".to_owned(),
+            ],
+            activation_ls: vec!["not_activate".to_owned(), "activate".to_owned()],
+            is_open_activate_help: false,
 
-	    reading_records: HashMap::new(),
-	    current_fname:"".to_owned(),
+            reading_records: HashMap::new(),
+            current_fname: "".to_owned(),
 
-	    is_open_export:false,
-	    is_open_import:false,
-            is_open_login:true,
-            is_open_signup:false,
-            is_open_payment_qr:false,
+            is_open_export: false,
+            is_open_import: false,
+            is_open_login: true,
+            is_open_signup: false,
+            is_open_payment_qr: false,
 
-	    default_color:Color32::LIGHT_GRAY,
-	    strong_color:Color32::WHITE,
+            default_color: Color32::LIGHT_GRAY,
+            strong_color: Color32::WHITE,
 
-	    label:"example".to_owned(),
-	    value: 2.7,
+            label: "example".to_owned(),
+            value: 2.7,
         }
     }
 }
@@ -144,9 +140,10 @@ impl TemplateApp {
 
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
-        if let Some(storage) = cc.storage {
-            return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
-        }
+        // close the state storage
+        // if let Some(storage) = cc.storage {
+        //     return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+        // }
 
         Default::default()
     }
@@ -162,184 +159,197 @@ impl eframe::App for TemplateApp {
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         let Self {
+            lang,
+            is_dark_theme,
 
-	    lang,
-	    is_dark_theme,
+            email,
+            pwd,
+            pwd2,
+            login_state,
+            user_type,
+            activation_state,
+            utype_ls,
+            activation_ls,
+            is_open_activate_help,
+            reading_records,
 
-	    email,
-	    pwd,pwd2,
-	    login_state,
-	    user_type,
-	    activation_state,
-	    utype_ls,
-	    activation_ls,
-	    is_open_activate_help,
-	    reading_records,
+            current_fname,
+            is_open_export,
+            is_open_import,
+            is_open_login,
+            is_open_signup,
+            is_open_payment_qr,
 
-	    current_fname,
-	    is_open_export,
-	    is_open_import,
-	    is_open_login,
-	    is_open_signup,
-	    is_open_payment_qr,
+            default_color,
+            strong_color,
 
-	    default_color,
-	    strong_color,
-
-	    label,
-	    value
-
+            label,
+            value,
         } = self;
 
-
-	// here we test the reading window.
-
-
-
-	
+        // here we test the reading window.
 
         let now = Local::now().format("%F-%T").to_string();
         if true {
-	    let tt_login= match lang.as_str(){
-		"zh"=>"登录，以同步您的私有信息",
-		_=>"Login to sync your information!",
-	    };
-            egui::Window::new(tt_login).default_width(300.0)
-		    .open(is_open_login)
-		    .show(ctx,|ui|{
-                
-                // ui.heading("Login to your account!");
-                ui.horizontal(|ui|{
-                    ui.label("Email:");
-                    ui.text_edit_singleline(email);
-                });
-                ui.horizontal(|ui|{
-                    ui.label("Password:");
-                    password_ui(ui,pwd)
-                });
-			match lang.as_str(){
-			    "zh"=>ui.small("不少于8个字符，仅数字、字母与特殊符号。"),
-			    _=>ui.small("no less than 8 characters."),
-			};
-            ui.horizontal(|ui|{
-		let tt_fgt=match lang.as_str(){
-		    "zh"=>"忘记密码？",
-			_=>"I forget the password",
-		};
-                if ui.button(tt_fgt).clicked(){
-                    let _=1;
-                }
-		let tt_lgi=match lang.as_str(){"zh"=>"登录",_=>"Login."};
-                if ui.button(tt_lgi).clicked(){
-                    let _x=1;
-		    
-            let rt=tokio::runtime::Builder::new_current_thread()
-                    .enable_all().build().unwrap();
-            let mut res=("".to_owned(),
-            "0".to_owned(),"nothing".to_owned(),"not_activate".to_owned());
-            rt.block_on(async{
-                // println!("email:{}，pwd:{}",&email,&pwd);
-                res=query_login(&email,&pwd).await;
-            });
-		    if res.0=="Ok"{
-			*login_state=res.1.parse().unwrap();
-			*user_type=res.2;
-			*activation_state=res.3;
-		    }
-		    else if res.0=="pwd_error"{
-    			ui.label("Incorrect emails or passwords.");
-		    }
-		    else{
-	    		ui.label("Incorrect emails or passwords.");
-		    }
-                }
-		let tt_sgu=match lang.as_str(){"zh"=>"注册账号",_=>"No account? Sign Up"};
-                if ui.button(tt_sgu).clicked(){
-                    // *is_open_login=false;
-                    *is_open_signup=true;
-                }
-		
-            });
-		    });
+            let tt_login = match lang.as_str() {
+                "zh" => "登录，以同步您的私有信息",
+                _ => "Login to sync your information!",
+            };
+            egui::Window::new(tt_login)
+                .default_width(300.0)
+                .open(is_open_login)
+                .show(ctx, |ui| {
+                    // ui.heading("Login to your account!");
+                    ui.horizontal(|ui| {
+                        ui.label("Email:");
+                        ui.text_edit_singleline(email);
+                    });
+                    ui.horizontal(|ui| {
+                        ui.label("Password:");
+                        password_ui(ui, pwd)
+                    });
+                    match lang.as_str() {
+                        "zh" => ui.small("不少于8个字符，仅数字、字母与特殊符号。"),
+                        _ => ui.small("no less than 8 characters."),
+                    };
+                    ui.horizontal(|ui| {
+                        let tt_fgt = match lang.as_str() {
+                            "zh" => "忘记密码？",
+                            _ => "I forget the password",
+                        };
+                        if ui.button(tt_fgt).clicked() {
+                            let _ = 1;
+                        }
+                        let tt_lgi = match lang.as_str() {
+                            "zh" => "登录",
+                            _ => "Login.",
+                        };
+                        if ui.button(tt_lgi).clicked() {
+                            let _x = 1;
 
-	    let tt_sguu=match lang.as_str(){"zh"=>"注册，以同步您的私有信息",
-				   _=>"Sign up, to sync your information"};
-            egui::Window::new(tt_sguu).default_width(300.0)
-		    .open(is_open_signup)
-		    .show(ctx,|ui|{
-                
-                // ui.heading("Sign Up Now!");
-                ui.horizontal(|ui|{
-		        match lang.as_str(){
-			    "zh"=>ui.label("邮箱："),
-			_   =>ui.label("Email:"),
-		        };
-                    ui.text_edit_singleline(email);
-                });
-                ui.horizontal(|ui|{
-		    match lang.as_str(){
-			"zh"=>ui.label("密码："),
-			_=>ui.label("Password:"),
-		    };
-                    
-                    password_ui(ui,pwd)
-                });
-		match lang.as_str(){
-		    "zh"=>ui.small("不少于8个字符，仅数字、字母与特殊符号。"),
-		    _=>ui.small("no less than 8 characters."),
-		};
-            
-                ui.horizontal(|ui|{
-		    match lang.as_str(){
-"zh"=>ui.label("再次输入:"),
-_=>ui.label("Password Again:"),
-		    };
-                    
-                    password_ui(ui,pwd2)
+                            let rt = tokio::runtime::Builder::new_current_thread()
+                                .enable_all()
+                                .build()
+                                .unwrap();
+                            let mut res = (
+                                "".to_owned(),
+                                "0".to_owned(),
+                                "nothing".to_owned(),
+                                "not_activate".to_owned(),
+                            );
+                            // rt.block_on(async{
+                            //     // println!("email:{}，pwd:{}",&email,&pwd);
+                            //     res=query_login(&email,&pwd).await;
+                            // });
+                            if res.0 == "Ok" {
+                                *login_state = res.1.parse().unwrap();
+                                *user_type = res.2;
+                                *activation_state = res.3;
+                            } else if res.0 == "pwd_error" {
+                                ui.label("Incorrect emails or passwords.");
+                            } else {
+                                ui.label("Incorrect emails or passwords.");
+                            }
+                        }
+                        let tt_sgu = match lang.as_str() {
+                            "zh" => "注册账号",
+                            _ => "No account? Sign Up",
+                        };
+                        if ui.button(tt_sgu).clicked() {
+                            // *is_open_login=false;
+                            *is_open_signup = true;
+                        }
+                    });
                 });
 
-                if pwd!=pwd2{
-		    let tt_pic=match lang.as_str(){
-			"zh"=>"密码不一致",
-			_=>"Password inconsistant"
-		    };
-                    ui.colored_label(egui::Color32::RED,
-                         tt_pic);
-                }
+            let tt_sguu = match lang.as_str() {
+                "zh" => "注册，以同步您的私有信息",
+                _ => "Sign up, to sync your information",
+            };
+            egui::Window::new(tt_sguu)
+                .default_width(300.0)
+                .open(is_open_signup)
+                .show(ctx, |ui| {
+                    // ui.heading("Sign Up Now!");
+                    ui.horizontal(|ui| {
+                        match lang.as_str() {
+                            "zh" => ui.label("邮箱："),
+                            _ => ui.label("Email:"),
+                        };
+                        ui.text_edit_singleline(email);
+                    });
+                    ui.horizontal(|ui| {
+                        match lang.as_str() {
+                            "zh" => ui.label("密码："),
+                            _ => ui.label("Password:"),
+                        };
 
-            ui.horizontal(|ui|{
-		let tt_sgu_b=match lang.as_str(){"zh"=>"注册",_=>"Now Sign Up!"};
-		let tt_sgu_b_ah=match lang.as_str(){"zh"=>"转至登录页面",_=>"Already have a account? Login."};
-                if ui.button(tt_sgu_b).clicked(){
-                    let rt=tokio::runtime::Builder::new_current_thread()
-                    .enable_all().build().unwrap();
-		    let mut res=("".to_owned(),"".to_owned(),
-			     "not_activate".to_owned(),"nothing".to_owned(),
-		    );
-		    rt.block_on(async{
-			res=signup(&email,&pwd).await;
-		    });
+                        password_ui(ui, pwd)
+                    });
+                    match lang.as_str() {
+                        "zh" => ui.small("不少于8个字符，仅数字、字母与特殊符号。"),
+                        _ => ui.small("no less than 8 characters."),
+                    };
 
-		    if res.0=="Ok"{
-			*login_state=res.1.parse().unwrap();
-			*user_type=res.2;
-			*activation_state=res.3;
-		    }
-		    else if res.0=="pwd_error"{
-    			ui.label(&res.0);
-		    }
-		    else{
-	    		ui.label(&res.0);
-		    }
+                    ui.horizontal(|ui| {
+                        match lang.as_str() {
+                            "zh" => ui.label("再次输入:"),
+                            _ => ui.label("Password Again:"),
+                        };
 
-                    let _x=1;
-                }
-                if ui.button(tt_sgu_b_ah).clicked(){
-                    *is_open_login=true;
-                    // *is_open_signup=false;
-                }
-            });
-		    });
+                        password_ui(ui, pwd2)
+                    });
+
+                    if pwd != pwd2 {
+                        let tt_pic = match lang.as_str() {
+                            "zh" => "密码不一致",
+                            _ => "Password inconsistant",
+                        };
+                        ui.colored_label(egui::Color32::RED, tt_pic);
+                    }
+
+                    ui.horizontal(|ui| {
+                        let tt_sgu_b = match lang.as_str() {
+                            "zh" => "注册",
+                            _ => "Now Sign Up!",
+                        };
+                        let tt_sgu_b_ah = match lang.as_str() {
+                            "zh" => "转至登录页面",
+                            _ => "Already have a account? Login.",
+                        };
+                        if ui.button(tt_sgu_b).clicked() {
+                            let rt = tokio::runtime::Builder::new_current_thread()
+                                .enable_all()
+                                .build()
+                                .unwrap();
+                            let mut res = (
+                                "".to_owned(),
+                                "".to_owned(),
+                                "not_activate".to_owned(),
+                                "nothing".to_owned(),
+                            );
+                            // rt.block_on(async{
+                            // 	res=signup(&email,&pwd).await;
+                            // });
+
+                            if res.0 == "Ok" {
+                                *login_state = res.1.parse().unwrap();
+                                *user_type = res.2;
+                                *activation_state = res.3;
+                            } else if res.0 == "pwd_error" {
+                                ui.label(&res.0);
+                            } else {
+                                ui.label(&res.0);
+                            }
+
+                            let _x = 1;
+                        }
+                        if ui.button(tt_sgu_b_ah).clicked() {
+                            *is_open_login = true;
+                            // *is_open_signup=false;
+                        }
+                    });
+                });
 
             egui::CentralPanel::default().show(ctx, |ui| {
 
@@ -404,6 +414,7 @@ _=>ui.label("Password Again:"),
                 } else {
                     (Color32::DARK_GRAY, Color32::BLACK)
                 };
+
                 ui.horizontal(|ui| {
 		    match lang.as_str(){"zh"=>{
 			ui.label("主题");
@@ -413,6 +424,7 @@ _=>ui.label("Password Again:"),
 		    ui.radio_value(is_dark_theme, false, "☀️").clicked();
 		    ui.radio_value(is_dark_theme, true, "☪").clicked();
                 });
+
             let tt_pay=match lang.as_str(){
 		    "zh"=>"赞助本网站", _=>"Donate"
 		    };
@@ -737,81 +749,80 @@ pub fn code_view_ui(ui: &mut egui::Ui, mut code: &str) {
     );
 }
 
-pub fn open_one_reader(ctx:&Context, fname: &str,
-		       is_open:&mut bool,
-		       docl:&mut DocLabeled){
-    egui::Window::new(fname).default_open(true)
-           .default_height(400.0).default_width(600.0)
-	   .collapsible(true)
-	   .constrain(true)
-	   .open(is_open)
-	   .show(ctx, |ui|{
-	       egui::SidePanel::left("headline")
-                   .resizable(true)
-                   .default_width(200.0)
-                   .show_inside(ui, |ui|{
-		       // ui.heading("Headline of Books");
-		       ui.vertical_centered(|ui|{
-		       ui.heading("Headline of Books");
-		       });
-		       egui::ScrollArea::vertical().show(ui, |ui|{
-			   ui.label("111111");
-			   ui.label("111111");
-			   ui.label("111111");
-			   ui.label("111111");
-		       });
-		   });
-	       egui::CentralPanel::default()
-		   // .show(ui, |ui|{
-		   .show_inside(ui, |ui|{
-		       egui::ScrollArea::vertical().show(ui, |ui|{
-			   render_selected_text(ctx,ui, docl);
-		       });
-	       });
-	       egui::SidePanel::right("notes")
-                   .resizable(true)
-                   .default_width(200.0)
-                   .show_inside(ui, |ui|{
-		       ui.heading("Notes of Books");
-		       egui::ScrollArea::vertical().show(ui, |ui|{
-			   ui.label("111111");
-			   ui.label("222222");
-			   ui.label("111111");
-			   ui.label("111111");
-		       });
-		   });
-	   });
+pub fn open_one_reader(ctx: &Context, fname: &str, is_open: &mut bool, docl: &mut DocLabeled) {
+    egui::Window::new(fname)
+        .default_open(true)
+        .default_height(400.0)
+        .default_width(600.0)
+        .collapsible(true)
+        .constrain(true)
+        .open(is_open)
+        .show(ctx, |ui| {
+            egui::SidePanel::left("headline")
+                .resizable(true)
+                .default_width(200.0)
+                .show_inside(ui, |ui| {
+                    // ui.heading("Headline of Books");
+                    ui.vertical_centered(|ui| {
+                        ui.heading("Headline of Books");
+                    });
+                    egui::ScrollArea::vertical().show(ui, |ui| {
+                        ui.label("111111");
+                        ui.label("111111");
+                        ui.label("111111");
+                        ui.label("111111");
+                    });
+                });
+            egui::CentralPanel::default()
+                // .show(ui, |ui|{
+                .show_inside(ui, |ui| {
+                    egui::ScrollArea::vertical().show(ui, |ui| {
+                        render_selected_text(ctx, ui, docl);
+                    });
+                });
+            egui::SidePanel::right("notes")
+                .resizable(true)
+                .default_width(200.0)
+                .show_inside(ui, |ui| {
+                    ui.heading("Notes of Books");
+                    egui::ScrollArea::vertical().show(ui, |ui| {
+                        ui.label("111111");
+                        ui.label("222222");
+                        ui.label("111111");
+                        ui.label("111111");
+                    });
+                });
+        });
 }
 
-pub fn render_selected_text(ctx:&Context,ui:&mut egui::Ui,docl:&mut DocLabeled){
-    
-    let mut layouter=|ui: &egui::Ui, easy_mark:&str, wrap_width:f32|{
-
-	let mut job=docl.rendering();
-	// println!("easy_mark: {}", easy_mark);
-	// let mut job = LayoutJob::default();
-	// job.append(easy_mark, 0.0,
-	// 	   TextFormat{color: Color32::RED, ..Default::default()});
-             job.wrap.max_width = wrap_width; 
-             ui.fonts(|f| f.layout_job(job)) 
+pub fn render_selected_text(ctx: &Context, ui: &mut egui::Ui, docl: &mut DocLabeled) {
+    let mut layouter = |ui: &egui::Ui, easy_mark: &str, wrap_width: f32| {
+        let mut job = docl.rendering();
+        // println!("easy_mark: {}", easy_mark);
+        // let mut job = LayoutJob::default();
+        // job.append(easy_mark, 0.0,
+        // 	   TextFormat{color: Color32::RED, ..Default::default()});
+        job.wrap.max_width = wrap_width;
+        ui.fonts(|f| f.layout_job(job))
     };
 
-    let te=egui::TextEdit::multiline(&mut docl.raw_text.clone().as_str())
-	   .desired_width(f32::INFINITY) 
-	   .layouter(&mut layouter).show(ui);
+    let te = egui::TextEdit::multiline(&mut docl.raw_text.clone().as_str())
+        .desired_width(f32::INFINITY)
+        .layouter(&mut layouter)
+        .show(ui);
 
-    if let Some(cursor_range) = te.cursor_range{
-	use egui::TextBuffer as _;
-	let selected_chars = cursor_range.as_sorted_char_range();
-	println!("cursor_range:{:?}\n char_range:{:?}",&cursor_range,selected_chars);
-	if selected_chars.start!=selected_chars.end &&
-	ctx.input(|i|i.pointer.any_released()){
-	docl.update_highlight(selected_chars.start, selected_chars.end, (255,0,0));
-	}
-            };
-
+    if let Some(cursor_range) = te.cursor_range {
+        use egui::TextBuffer as _;
+        let selected_chars = cursor_range.as_sorted_char_range();
+        println!(
+            "cursor_range:{:?}\n char_range:{:?}",
+            &cursor_range, selected_chars
+        );
+        if selected_chars.start != selected_chars.end && ctx.input(|i| i.pointer.any_released()) {
+            docl.update_highlight(selected_chars.start, selected_chars.end, (255, 0, 0));
+        }
+    };
 }
-
 
 #[allow(clippy::ptr_arg)] // false positive
 pub fn password_ui(ui: &mut egui::Ui, password: &mut String) -> egui::Response {
