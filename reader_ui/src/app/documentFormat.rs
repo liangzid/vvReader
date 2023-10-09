@@ -71,10 +71,11 @@ impl DocLabeled{
 	    // scan overried regions
 	    let mut overried_idxes=vec![];
 	    for (i,record) in self.highlights.iter().enumerate(){
-		if record.0>bg_idx && record.1< bg_idx{
+		if record.0>=bg_idx && record.1<= end_idx{
 		    overried_idxes.push(i);
 		}
 	    }
+	    // println!("bgidx:{},endidx:{} other: {:?}",bg_idx,end_idx,overried_idxes);
 	    // delete such regions
 	    let mut acc=0;
 	    for x in overried_idxes{
@@ -96,9 +97,12 @@ impl DocLabeled{
 	    self.highlights.push((bg_idx,end_idx,colors));
 	}
 
-	//2. sort the vectors 
-	// self.rendering();
+	// 2. sort the vectors 
+             self.highlights.sort_by(|&v1, &v2| v1.0.cmp(&(v2.0)));
+	println!("highlight: {:?}",self.highlights);
+	    
     }
+    
     
     pub fn update_notes(&mut self,
 			bg_idx:usize,
@@ -115,8 +119,10 @@ impl DocLabeled{
 	let mut job = LayoutJob::default();
 
 	let mut bgn_idx=0;
-	let mut end_idx=self.raw_text.len();
+	let end_idx=self.raw_text.len();
 
+	println!("------------------------");
+	println!("highlights: {:?}",self.highlights);
 	if self.highlights.len()==0{
 	    job.append(&self.raw_text.char_range(bgn_idx..end_idx),
 			0.0,
@@ -129,7 +135,7 @@ impl DocLabeled{
 
 	for record in self.highlights.iter(){
 	    if bgn_idx!=record.0{
-		job.append(&self.raw_text[bgn_idx..=record.0],
+		job.append(&self.raw_text[bgn_idx..=record.0-1],
 			   0.0,
 			   TextFormat {
 			       color: self.default_color,
@@ -137,7 +143,7 @@ impl DocLabeled{
 			   },
 		);
 	    }
-	    job.append(&self.raw_text[record.0..=record.1],
+	    job.append(&self.raw_text[record.0..=record.1-1],
 		       0.0,
 		       TextFormat {
 			   color:light_color,
@@ -153,4 +159,22 @@ impl DocLabeled{
 	job
     }
 
+    // pub fn renderingWidget(&self)->egui::Response{
+	
+    // }
+
+}
+
+
+pub fn main(){
+
+    // test doclabeled.
+    let mut docl= DocLabeled::new(
+	"01234567890123456789".to_owned(),
+    vec![],vec![],0,Color32::WHITE);
+    docl.update_highlight(0,3,(255,0,0));
+    docl.update_highlight(1,2,(255,0,0));
+    docl.update_highlight(1,4,(255,0,0));
+    docl.update_highlight(6,9,(255,0,0));
+    docl.update_highlight(3,7,(255,0,0));
 }

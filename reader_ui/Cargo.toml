@@ -73,8 +73,8 @@ test=true
 bench=false
 
 # [[bin]]
-# name="interface"
-# path="src/app/communicate.rs"
+# name="for"
+# path="src/app/documentFormat.rs"
 # test=true
 # bench=false
 
