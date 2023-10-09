@@ -215,7 +215,7 @@ impl eframe::App for TemplateApp {
                 } else {
                     ctx.set_visuals(egui::Visuals::light());
                     color_blue = Color32::from_rgb(33, 24, 68);
-                }
+		}
                 (*default_color, *strong_color) = if
 		    ui.visuals().dark_mode {
                     (Color32::LIGHT_GRAY, Color32::WHITE)
@@ -511,14 +511,18 @@ impl eframe::App for TemplateApp {
 			    let newpth=uploadpath.clone();
 			    let fnme=newpth
 				.to_str().unwrap();
-   reading_records.insert(String::from(fnme),(true,doc));
-			    let temp_record=(*reading_records).get_mut(fnme).unwrap();
+			    reading_records.insert(String::from(fnme),
+						   (true,doc,false,
+						    (255,0,0),12.0,
+			    ));
 			}
 		}
 
 		//rendering all reading windows
 		for rec in reading_records.iter_mut(){
-		    open_one_reader(&ctx, lang,
+		    rec.1.1.default_color=default_color.clone();
+		    open_one_reader(&ctx,(*is_dark_theme).clone(),
+				    lang,
 				    &mut rec.1.3,
 				    &mut rec.1.4,
 				    rec.0.as_str(),

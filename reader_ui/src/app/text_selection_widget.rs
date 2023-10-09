@@ -2,7 +2,8 @@ use egui::Context;
 use crate::app::documentFormat::DocLabeled;
 
 
-pub fn open_one_reader(ctx: &Context, lang:&String,
+pub fn open_one_reader(ctx: &Context,is_dark:bool,
+		       lang:&String,
 		       hlc:&mut (u8,u8,u8),
 		       fontsz:&mut f32,
 		       fname: &str, is_open: &mut bool,
@@ -13,7 +14,7 @@ pub fn open_one_reader(ctx: &Context, lang:&String,
         .default_height(400.0)
         .default_width(600.0)
         .collapsible(true)
-        .constrain(true)
+        // .constrain(true)
         .open(is_open)
         .show(ctx, |ui| {
             egui::SidePanel::left("headline")
@@ -48,9 +49,17 @@ pub fn open_one_reader(ctx: &Context, lang:&String,
 			};
 			ui.menu_button(tt_ti,|ui|{
 			
-			    ui.selectable_value(hlc, (255 as u8,0 as u8,0 as u8), "Red");
-			    ui.selectable_value(hlc, (0,255,0), "Green");
-			    ui.selectable_value(hlc, (0,0,255), "Blue");
+			    if is_dark{
+				
+			    ui.selectable_value(hlc, (71, 71, 135), "THEME I");
+			    ui.selectable_value(hlc, (12, 36, 97), "THEME II");
+			    ui.selectable_value(hlc, (183, 21, 64), "THEME III");
+			    }
+			    else{
+			    ui.selectable_value(hlc, (246, 229, 141), "Bee Keeper");
+			    ui.selectable_value(hlc, (224, 86, 253), "Heliotrope");
+			    ui.selectable_value(hlc, (106, 176, 76), "Pure Apple");
+			    }
 			} );
 			let tt_fz=match lang.as_str(){
 			    "zh"=>"字体大小:",
@@ -60,6 +69,7 @@ pub fn open_one_reader(ctx: &Context, lang:&String,
 			ui.add(egui::Slider::new(fontsz,
 				5.0..=20.0));
 		    });
+		    ui.separator();
 
                     egui::ScrollArea::vertical().show(ui, |ui| {
                         render_selected_text(ctx, ui, docl,
@@ -90,7 +100,7 @@ pub fn render_selected_text(ctx: &Context, ui: &mut egui::Ui,
 			    fontsz:&mut f32,
 ) {
     let mut layouter = |ui: &egui::Ui, easy_mark: &str, wrap_width: f32| {
-        let mut job = docl.rendering(fontsz);
+        let mut job = docl.rendering(*fontsz);
         // println!("easy_mark: {}", easy_mark);
         // let mut job = LayoutJob::default();
         // job.append(easy_mark, 0.0,
@@ -114,7 +124,7 @@ pub fn render_selected_text(ctx: &Context, ui: &mut egui::Ui,
         if selected_chars.start != selected_chars.end
 	    && ctx.input(|i| i.pointer.any_released())
 	    && *is_open_highlight {
-            docl.update_highlight(selected_chars.start, selected_chars.end, (255, 0, 0));
+            docl.update_highlight(selected_chars.start, selected_chars.end, (*hlc).clone());
         }
     };
 }

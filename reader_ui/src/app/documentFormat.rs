@@ -7,6 +7,10 @@ use serde;
 use serde_json;
 use std::default::{self, Default};
 
+// pub enum THEME{
+//     I
+// }
+
 /// format the document for annotation and other things.
 #[derive(Default, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -23,7 +27,7 @@ pub struct DocLabeled {
         String, //the content what we noted.
     )>,
     current_index: usize, // current index of person's reading.
-    default_color: Color32,
+    pub default_color: Color32,
 }
 
 impl DocLabeled {
@@ -132,7 +136,7 @@ impl DocLabeled {
                 0.0,
                 TextFormat {
                     color: self.default_color,
-		    font:fid,
+		    font_id:fid.clone(),
                     ..Default::default()
                 },
             );
@@ -145,6 +149,7 @@ impl DocLabeled {
                     0.0,
                     TextFormat {
                         color: self.default_color,
+			font_id:fid.clone(),
                         ..Default::default()
                     },
                 );
@@ -153,7 +158,8 @@ impl DocLabeled {
                 &self.raw_text[record.0..=record.1 - 1],
                 0.0,
                 TextFormat {
-                    color: light_color,
+                    color: self.default_color,
+		    font_id:fid.clone(),
                     background: Color32::from_rgb(record.2 .0, record.2 .1, record.2 .2),
                     ..Default::default()
                 },
@@ -166,6 +172,7 @@ impl DocLabeled {
                 0.0,
                 TextFormat {
                     color: self.default_color,
+		    font_id:fid.clone(),
                     ..Default::default()
                 },
             );
