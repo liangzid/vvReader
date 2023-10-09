@@ -115,22 +115,24 @@ impl DocLabeled {
     }
 
     /// render the struct text into the egui style rich texts.
-    pub fn rendering(&self) -> LayoutJob {
-        let light_color = Color32::WHITE;
+    pub fn rendering(&self,fontsz:f32) -> LayoutJob {
 
+        let light_color = Color32::WHITE;
+	let mut fid=egui::FontId{size:fontsz,..Default::default()};
         let mut job = LayoutJob::default();
 
         let mut bgn_idx = 0;
         let end_idx = self.raw_text.len();
 
-        println!("------------------------");
-        println!("highlights: {:?}", self.highlights);
+        // println!("------------------------");
+        // println!("highlights: {:?}", self.highlights);
         if self.highlights.len() == 0 {
             job.append(
                 &self.raw_text.char_range(bgn_idx..end_idx),
                 0.0,
                 TextFormat {
                     color: self.default_color,
+		    font:fid,
                     ..Default::default()
                 },
             );

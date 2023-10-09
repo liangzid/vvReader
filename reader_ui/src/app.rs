@@ -59,6 +59,9 @@ pub struct TemplateApp {
             bool, // its window is open or not.
             // warning: This might be large!
             DocLabeled, // document related informaiton
+	    bool, // is open highlight or not
+	    (u8,u8,u8),
+	    f32,
         ),
     >,
 
@@ -515,9 +518,13 @@ impl eframe::App for TemplateApp {
 
 		//rendering all reading windows
 		for rec in reading_records.iter_mut(){
-		    open_one_reader(&ctx, rec.0.as_str(),
+		    open_one_reader(&ctx, lang,
+				    &mut rec.1.3,
+				    &mut rec.1.4,
+				    rec.0.as_str(),
 				    &mut rec.1.0,
-				    &mut rec.1.1);
+				    &mut rec.1.1,
+		    &mut rec.1.2);
 		}
             });
         
