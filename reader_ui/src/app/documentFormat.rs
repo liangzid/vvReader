@@ -25,22 +25,22 @@ pub struct DocLabeled {
         usize,  // label begin index
         usize,  // label end index
         String, //the content what we noted.
-	bool, // POPUP window: if this note edit done or not.
-	bool, // side bar note show: if this note edited or not.
+        bool,   // POPUP window: if this note edit done or not.
+        bool,   // side bar note show: if this note edited or not.
     )>,
     current_index: usize, // current index of person's reading.
     pub default_color: Color32,
-    pub is_dark:bool,
+    pub is_dark: bool,
 }
 
 impl DocLabeled {
     pub fn new(
         raw_text: String,
         highlights: Vec<(usize, usize, (u8, u8, u8))>,
-        notes: Vec<(usize, usize, String,bool,bool)>,
+        notes: Vec<(usize, usize, String, bool, bool)>,
         current_index: usize,
         default_color: Color32,
-	is_dark:bool,
+        is_dark: bool,
     ) -> DocLabeled {
         DocLabeled {
             raw_text: raw_text,
@@ -48,7 +48,7 @@ impl DocLabeled {
             notes: notes,
             current_index: current_index,
             default_color: default_color,
-	    is_dark:is_dark,
+            is_dark: is_dark,
         }
     }
 
@@ -120,12 +120,12 @@ impl DocLabeled {
     }
 
     /// render the struct text into the egui style rich texts.
-    pub fn rendering(&self,fontsz:f32) -> LayoutJob {
-
-
-
+    pub fn rendering(&self, fontsz: f32) -> LayoutJob {
         let light_color = Color32::WHITE;
-	let fid=egui::FontId{size:fontsz,..Default::default()};
+        let fid = egui::FontId {
+            size: fontsz,
+            ..Default::default()
+        };
         let mut job = LayoutJob::default();
 
         let mut bgn_idx = 0;
@@ -139,7 +139,7 @@ impl DocLabeled {
                 0.0,
                 TextFormat {
                     color: self.default_color,
-		    font_id:fid.clone(),
+                    font_id: fid.clone(),
                     ..Default::default()
                 },
             );
@@ -152,25 +152,24 @@ impl DocLabeled {
                     0.0,
                     TextFormat {
                         color: self.default_color,
-			font_id:fid.clone(),
+                        font_id: fid.clone(),
                         ..Default::default()
                     },
                 );
             }
-	    let mut cbgc=record.2.clone();
-	    if self.is_dark{
-		if record.2!=(255,0,0){
-		    cbgc=(255-record.2.0, 255-record.2.1,
-			  255-record.2.2);
-		}
-	    }
+            let mut cbgc = record.2.clone();
+            if self.is_dark {
+                if record.2 != (255, 0, 0) {
+                    cbgc = (255 - record.2 .0, 255 - record.2 .1, 255 - record.2 .2);
+                }
+            }
             job.append(
                 &self.raw_text.char_range(record.0..record.1),
                 0.0,
                 TextFormat {
                     color: self.default_color,
-		    font_id:fid.clone(),
-                    background: Color32::from_rgb(cbgc.0,cbgc.1,cbgc.2),
+                    font_id: fid.clone(),
+                    background: Color32::from_rgb(cbgc.0, cbgc.1, cbgc.2),
                     ..Default::default()
                 },
             );
@@ -178,11 +177,11 @@ impl DocLabeled {
         }
         if bgn_idx != end_idx {
             job.append(
-                &self.raw_text.char_range(bgn_idx..end_idx ),
+                &self.raw_text.char_range(bgn_idx..end_idx),
                 0.0,
                 TextFormat {
                     color: self.default_color,
-		    font_id:fid.clone(),
+                    font_id: fid.clone(),
                     ..Default::default()
                 },
             );

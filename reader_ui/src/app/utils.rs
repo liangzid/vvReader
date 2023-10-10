@@ -1,10 +1,8 @@
-
 use egui;
 
 use egui_extras::{Size, StripBuilder};
 use serde;
 use serde_json;
-
 
 /// View some code with syntax highlighting and selection.
 pub fn code_view_ui(ui: &mut egui::Ui, mut code: &str) {

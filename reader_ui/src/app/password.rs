@@ -3,11 +3,11 @@ use std::default::{self, Default};
 use std::{collections::HashMap, hash::Hash};
 
 use chrono::{DateTime, Local};
+use egui::text::LayoutJob;
 use egui::Context;
 use egui::{
     emath::align, util::History, Color32, FontData, FontDefinitions, FontFamily, TextFormat,
 };
-use egui::text::LayoutJob;
 use env_logger::fmt::Color;
 
 use egui_extras::{Size, StripBuilder};

@@ -1,14 +1,13 @@
-
 use egui;
 use std::default::{self, Default};
 use std::{collections::HashMap, hash::Hash};
 
 use chrono::{DateTime, Local};
+use egui::text::LayoutJob;
 use egui::Context;
 use egui::{
     emath::align, util::History, Color32, FontData, FontDefinitions, FontFamily, TextFormat,
 };
-use egui::text::LayoutJob;
 use env_logger::fmt::Color;
 
 use egui_extras::{Size, StripBuilder};
@@ -16,12 +15,8 @@ use rfd;
 use serde;
 use serde_json;
 
-
-
-pub fn render_donate_win(ctx:&egui::Context,
-			 is_open_payment_qr:&mut bool,
-			 lang:&String){
-                    egui::Window::new("").default_width(280.0)
+pub fn render_donate_win(ctx: &egui::Context, is_open_payment_qr: &mut bool, lang: &String) {
+    egui::Window::new("").default_width(280.0)
                     .open(is_open_payment_qr)
                     .show(ctx, |ui| {
 			let tt_donate=match lang.as_str(){
