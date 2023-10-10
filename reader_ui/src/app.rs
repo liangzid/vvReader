@@ -230,15 +230,17 @@ impl eframe::App for TemplateApp {
 		    }
 			       _=>{ui.label("Theme:");}
 		    }
-		    ui.radio_value(is_dark_theme, false, "☀️").clicked();
-		    ui.radio_value(is_dark_theme, true, "☪").clicked();
+		    ui.radio_value(is_dark_theme, false, "☀").clicked();
+		    ui.radio_value(is_dark_theme, true, "🌙").clicked();
                 });
             let tt_pay=match lang.as_str(){
 		    "zh"=>"赞助本网站", _=>"Donate"
 		    };
+		ui.vertical_centered(|ui|{
 		    if ui.button(tt_pay).clicked(){
 		        *is_open_payment_qr=true;
 		    }
+		});
 
                 let mut track_lang = true;
                 // let mut lang.as_str() = "zh".to_owned();
@@ -337,6 +339,7 @@ impl eframe::App for TemplateApp {
 			}
 		    }
                 });
+
                 ui.horizontal(|ui| {
                     
 		    #[cfg(not(target_arch = "wasm32"))]
@@ -364,18 +367,6 @@ impl eframe::App for TemplateApp {
 
 	    });
 
-		    let tt_imports=match lang.as_str(){
-			"zh"=>"文本方式导入",
-			_=>"import from string"
-		    };
-                    if ui.button(tt_imports).clicked() {
-                        if activation_state=="not_activate"{
-                            *is_open_activate_help=true;    
-                        }
-                        else{
-                            *is_open_import=true;
-                        }
-                    }
 		    let tt_exports=match lang.as_str(){
 			"zh"=>"导出为可复制的文本",
 			_=>"export as string"
@@ -407,24 +398,6 @@ impl eframe::App for TemplateApp {
 			
                     }
 
-
-
-		let tt_done=match lang.as_str(){"zh"=>"毕",_=>"Done."};
-		let tt_cp=match lang.as_str(){"zh"=>"复制之",_=>"Copy it."};
-        let tt_imports=match lang.as_str(){
-			"zh"=>"文本方式导入",
-			_=>"import from string"
-		    };
-		egui::Window::new(tt_imports).default_width(300.0)
-		    .open(is_open_import)
-		    .show(ctx,|ui|{
-			let mut read_text:String="".to_owned();
-			ui.text_edit_multiline(&mut read_text);
-			if ui.button(tt_done).clicked(){
-			    // *historys = serde_json::from_str(&read_text).unwrap();
-			    // todo: import with text
-			}
-		    });
             let tt_exports=match lang.as_str(){
                 "zh"=>"导出为可复制的文本",
                 _=>"export as string"
@@ -441,7 +414,7 @@ impl eframe::App for TemplateApp {
 				let res="".to_owned();
 			ui.vertical(|ui|{
 			    let mut is_copyed=false;
-			    if ui.button(tt_cp).clicked(){
+			    if ui.button(tt_exports).clicked(){
 				is_copyed=true;
 				use clipboard::{ClipboardContext,ClipboardProvider};
 				let mut ctx:ClipboardContext = ClipboardProvider::new().unwrap();
@@ -455,23 +428,6 @@ impl eframe::App for TemplateApp {
 			})
 			    });
 		    });
-
-		    let tt_import=match lang.as_str(){
-			"zh"=>"导入",
-			_=>"import"
-		    };      #[cfg(not(target_arch = "wasm32"))]
-                    if ui.button(tt_import).clicked() {
-                        if activation_state=="not_activate"{
-                            *is_open_activate_help=true;    
-                        }
-                        else{
-                            if let Some(path) = rfd::FileDialog::new().pick_file() {
-                                // let content = std::fs::read_to_string(path).unwrap();
-                                // *historys = serde_json::from_str(&content).unwrap();
-				// todo! import
-                            }
-                        }
-                    }
 
                 ui.separator();
 		
