@@ -446,8 +446,8 @@ impl eframe::App for TemplateApp {
                 ui.separator();
 
 		let tt_loadlocalf=match lang.as_str(){
-		    "zh"=>"上传本地文件",
-		    _=>"Upload file from your device",
+		    "zh"=>"阅读本地文件",
+		    _=>"Read a file from local",
 		};
 		if ui.button(tt_loadlocalf).clicked(){
 		    // open a file picker and then load the files.
@@ -487,15 +487,49 @@ impl eframe::App for TemplateApp {
 			}
 		}
 
-		// markdown editor
+		// markdown editor new file
 		let ttmd=match lang.as_str(){
-		    "zh"=>"记录笔记（markdown）",
-		    _=>"Take notes (Markdown)",
+		    "zh"=>"记笔记",
+		    _=>"Take notes",
 		};
 		if ui.button(ttmd).clicked(){
-		    md_states.push((true,"".to_owned(),
+		    md_states.push((true,"Undefined".to_owned(),
 				    EasyMarkEditor::default(),
 		    ));
+		}
+
+		// markdown editor readfile
+		let ttmd=match lang.as_str(){
+		    "zh"=>"加载过去的笔记",
+		    _=>"Load past notes",
+		};
+		if ui.button(ttmd).clicked(){
+		    if let Some(rfl)=
+			rfd::FileDialog::new().pick_file(){
+
+			    // first obtain the filename. 
+			    let tmp_fname=rfl.clone().to_str().unwrap().to_owned();
+
+			    for md in md_states.iter_mut(){
+				if md.1==tmp_fname {
+				    if md.0==false{
+					md.0=true;
+					let ct=std::fs::read_to_string(rfl.clone()).unwrap();
+					md.2.code=ct;
+					break;
+				    }
+				}
+			    }
+
+		md_states.push((true,"Undefined".to_owned(),
+			EasyMarkEditor::default()));
+
+			    // let ct=std::fs::
+			    // read_to_string(uploadpath.clone())
+				// .unwrap();
+
+			    
+			}
 		}
 		
                 });
@@ -523,15 +557,13 @@ impl eframe::App for TemplateApp {
 		//
 		// render all md editor windows
 		for md in md_states.iter_mut(){
-		    if md.1==""{
-			egui::Window::new("Undefined").
+			egui::Window::new(md.1.as_str()).
 			    open(&mut md.0)
 			    .show(ctx, |ui|{
 				md.2.lang=lang.clone();
-				md.2.ui(ui);
+				md.2.fname=md.1.clone();
+				md.2.ui(ui, &mut md.1);
 			    });
-			
-		    }
 		}
 
             });

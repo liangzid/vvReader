@@ -1,12 +1,14 @@
 use egui::{text_edit::CCursorRange, *};
+use rfd;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
 pub struct EasyMarkEditor {
-    code: String,
+    pub code: String,
     highlight_editor: bool,
     show_rendered: bool,
     pub lang:String,
+    pub fname:String,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     highlighter: crate::easy_mark::MemoizedEasymarkHighlighter,
@@ -26,31 +28,33 @@ impl Default for EasyMarkEditor {
             highlight_editor: true,
             show_rendered: true,
 	    lang:"en".to_owned(),
+	    fname:"".to_owned(),
             highlighter: Default::default(),
         }
     }
 }
 
 impl EasyMarkEditor {
-    pub fn panels(&mut self, ctx: &egui::Context) {
-        egui::TopBottomPanel::bottom("easy_mark_bottom").show(ctx, |ui| {
-            let layout = egui::Layout::top_down(egui::Align::Center).with_main_justify(true);
-            // ui.allocate_ui_with_layout(ui.available_size(), layout, |ui| {
-                // ui.add(crate::egui_github_link_file!())
-            // })
-        });
+    // pub fn panels(&mut self, ctx: &egui::Context) {
+    //     egui::TopBottomPanel::bottom("easy_mark_bottom").show(ctx, |ui| {
+    //         let layout = egui::Layout::top_down(egui::Align::Center).with_main_justify(true);
+    //         // ui.allocate_ui_with_layout(ui.available_size(), layout, |ui| {
+    //             // ui.add(crate::egui_github_link_file!())
+    //         // })
+    //     });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            self.ui(ui);
-        });
-    }
+    //     egui::CentralPanel::default().show(ctx, |ui| {
+    //         self.ui(ui);
+    //     });
+    // }
 
-    pub fn ui(&mut self, ui: &mut egui::Ui) {
+    pub fn ui(&mut self, ui: &mut egui::Ui,fname:&mut String) {
         egui::Grid::new("controls").show(ui, |ui| {
-	    let tth=match self.lang.as_str(){
-		"zh"=>"快捷键",_=>"Hotkeys",
-	    };
-            let _ = ui.button(tth).on_hover_ui(nested_hotkeys_ui);
+	    // let tth=match self.lang.as_str(){
+	    // 	"zh"=>"快捷键",_=>"Hotkeys",
+	    // };
+            // let _ = ui.button(tth).on_hover_ui(&mut self.nested_hotkeys_ui);
+
 	    let tth=match self.lang.as_str(){
 		"zh"=>"渲染界面",_=>"Show rendered",
 	    };
@@ -62,6 +66,33 @@ impl EasyMarkEditor {
             egui::reset_button(ui, self);
 
 	    // here: add the button of save files.
+	    let tth=match self.lang.as_str(){
+		"zh"=>"保存为",_=>"Save as",
+	    };
+	    if ui.button(tth).clicked(){
+		if let Some(path)=rfd::FileDialog::new()
+		    .save_file(){
+			let _=std::fs::write(path.clone(),
+				       self.code.clone());
+			*fname=path.to_str().unwrap().to_owned();
+		}
+
+	    }
+	    let tth=match self.lang.as_str(){
+		"zh"=>"保存",_=>"Save",
+	    };
+	    println!("fnm:{}",fname.as_str());
+	    if fname.as_str()!="Undefined"{
+		if ui.button(tth).clicked(){
+		    let p=std::path::PathBuf
+			::from((*fname).clone());
+		    let _ = std::fs::write(p,
+				self.code.clone());
+		}
+	    }
+	    
+
+
 	    
             ui.end_row();
         });
@@ -118,22 +149,9 @@ impl EasyMarkEditor {
             }
         }
     }
-}
 
-pub const SHORTCUT_BOLD: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::B);
-pub const SHORTCUT_CODE: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::N);
-pub const SHORTCUT_ITALICS: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::I);
-pub const SHORTCUT_SUBSCRIPT: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::L);
-pub const SHORTCUT_SUPERSCRIPT: KeyboardShortcut =
-    KeyboardShortcut::new(Modifiers::COMMAND, Key::Y);
-pub const SHORTCUT_STRIKETHROUGH: KeyboardShortcut =
-    KeyboardShortcut::new(Modifiers::CTRL.plus(Modifiers::SHIFT), Key::Q);
-pub const SHORTCUT_UNDERLINE: KeyboardShortcut =
-    KeyboardShortcut::new(Modifiers::CTRL.plus(Modifiers::SHIFT), Key::W);
-pub const SHORTCUT_INDENT: KeyboardShortcut =
-    KeyboardShortcut::new(Modifiers::CTRL.plus(Modifiers::SHIFT), Key::E);
 
-fn nested_hotkeys_ui(ui: &mut egui::Ui) {
+fn nested_hotkeys_ui(&self, ui: &mut egui::Ui) {
     egui::Grid::new("shortcuts").striped(true).show(ui, |ui| {
         let mut label = |shortcut, what| {
             ui.label(what);
@@ -162,6 +180,24 @@ fn nested_hotkeys_ui(ui: &mut egui::Ui) {
 
     });
 }
+
+
+
+}
+
+pub const SHORTCUT_BOLD: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::B);
+pub const SHORTCUT_CODE: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::N);
+pub const SHORTCUT_ITALICS: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::I);
+pub const SHORTCUT_SUBSCRIPT: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::L);
+pub const SHORTCUT_SUPERSCRIPT: KeyboardShortcut =
+    KeyboardShortcut::new(Modifiers::COMMAND, Key::Y);
+pub const SHORTCUT_STRIKETHROUGH: KeyboardShortcut =
+    KeyboardShortcut::new(Modifiers::CTRL.plus(Modifiers::SHIFT), Key::Q);
+pub const SHORTCUT_UNDERLINE: KeyboardShortcut =
+    KeyboardShortcut::new(Modifiers::CTRL.plus(Modifiers::SHIFT), Key::W);
+pub const SHORTCUT_INDENT: KeyboardShortcut =
+    KeyboardShortcut::new(Modifiers::CTRL.plus(Modifiers::SHIFT), Key::E);
+
 
 fn shortcuts(ui: &Ui, code: &mut dyn TextBuffer, ccursor_range: &mut CCursorRange) -> bool {
     let mut any_change = false;
