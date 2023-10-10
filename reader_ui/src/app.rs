@@ -359,6 +359,24 @@ impl eframe::App for TemplateApp {
                 });
 
                 ui.horizontal(|ui| {
+		    #[cfg(not(target_arch = "wasm32"))]
+		    let tt_export=match lang.as_str(){
+			"zh"=>"导入",
+			_=>"import past records"
+		    };      #[cfg(not(target_arch = "wasm32"))]
+                    if ui.button(tt_export).clicked() {
+                        if activation_state=="not_activate"{
+                            *is_open_activate_help=true;
+                        }
+                        else{
+                            if let Some(pth) = rfd::FileDialog::new().pick_file() {
+                                let res =std::fs::read_to_string(pth.clone()).unwrap();
+				let tmp:(HashMap<String,(bool,DocLabeled,bool,(u8,u8,u8),f32,bool)>,Vec<(bool,String,EasyMarkEditor)>)=serde_json::from_str(&res).unwrap();
+				*reading_records=tmp.0;
+				*md_states=tmp.1;
+                            }
+                        }
+                    }
                     
 		    #[cfg(not(target_arch = "wasm32"))]
 		    let tt_export=match lang.as_str(){
@@ -377,6 +395,7 @@ impl eframe::App for TemplateApp {
                             }
                         }
                     }
+
                     egui::Window::new("Notion").open(is_open_activate_help)
                     .show(ctx, |ui| {
                         ui.label("Sorry, you have no permission to do this operation!");
