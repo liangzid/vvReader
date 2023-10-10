@@ -16,6 +16,10 @@ mod donate;
 mod password;
 mod text_selection_widget;
 mod utils;
+// mod md_editor_render;
+
+use crate::EasyMarkEditor;
+
 mod account;
 use account::{render_login_windows,render_signup_windows};
 use communicate::{activate, get_history, merge_records, push_record, query_login, signup};
@@ -24,6 +28,7 @@ use donate::render_donate_win;
 use password::{password,password_ui};
 use text_selection_widget::{render_selected_text,open_one_reader};
 use utils::code_view_ui;
+// use md_editor_render::render_md_editor;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(Default, Debug, serde::Deserialize, serde::Serialize)]
@@ -66,6 +71,13 @@ pub struct TemplateApp {
         ),
     >,
 
+    // md editor related
+    md_states:Vec<(
+	bool, // is UI open or not.
+	String, // the save file path of current UI.
+	EasyMarkEditor,
+    )>,
+
     // contents of user inputs.
     current_fname: String,
     is_open_export: bool,
@@ -104,6 +116,7 @@ impl Default for TemplateApp {
             is_open_activate_help: false,
 
             reading_records: HashMap::new(),
+	    md_states:vec![],
             current_fname: "".to_owned(),
 
             is_open_export: false,
@@ -183,6 +196,7 @@ impl eframe::App for TemplateApp {
             activation_ls,
             is_open_activate_help,
             reading_records,
+	    md_states,
 
             current_fname,
             is_open_export,
@@ -207,7 +221,7 @@ impl eframe::App for TemplateApp {
 	render_donate_win(ctx, is_open_payment_qr,lang);
 
 	egui::SidePanel::left("options").resizable(true)
-	    .default_width(120.0).show(ctx, |ui|{
+	    .default_width(100.0).show(ctx, |ui|{
 		// set theme
                 let mut color_blue: Color32;
                 if *is_dark_theme {
@@ -430,11 +444,6 @@ impl eframe::App for TemplateApp {
 		    });
 
                 ui.separator();
-		
-                });
-
-	
-            egui::CentralPanel::default().show(ctx, |ui| {
 
 		let tt_loadlocalf=match lang.as_str(){
 		    "zh"=>"上传本地文件",
@@ -478,6 +487,23 @@ impl eframe::App for TemplateApp {
 			}
 		}
 
+		// markdown editor
+		let ttmd=match lang.as_str(){
+		    "zh"=>"记录笔记（markdown）",
+		    _=>"Take notes (Markdown)",
+		};
+		if ui.button(ttmd).clicked(){
+		    md_states.push((true,"".to_owned(),
+				    EasyMarkEditor::default(),
+		    ));
+		}
+		
+                });
+
+	
+            egui::CentralPanel::default().show(ctx, |ui| {
+
+
 		//rendering all reading windows
 		for rec in reading_records.iter_mut(){
 		    rec.1.1.default_color=default_color.clone();
@@ -492,6 +518,22 @@ impl eframe::App for TemplateApp {
 				    &mut rec.1.5
 		    );
 		}
+
+
+		//
+		// render all md editor windows
+		for md in md_states.iter_mut(){
+		    if md.1==""{
+			egui::Window::new("Undefined").
+			    open(&mut md.0)
+			    .show(ctx, |ui|{
+				md.2.lang=lang.clone();
+				md.2.ui(ui);
+			    });
+			
+		    }
+		}
+
             });
         
 

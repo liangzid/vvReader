@@ -101,6 +101,7 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
 
             egui::SidePanel::left(format!("headline-{}",fname))
                 .resizable(true)
+                .default_width(100.0)
                 .show_inside(ui, |ui| {
 		    let tt_ti=match lang.as_str(){
 			"zh"=>"目录",
