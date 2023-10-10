@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 use egui::Context;
 use crate::app::documentFormat::DocLabeled;
 
@@ -8,7 +10,9 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
 		       fontsz:&mut f32,
 		       fname: &str, is_open: &mut bool,
 		       docl: &mut DocLabeled,
-		       is_open_highlight:&mut bool) {
+		       is_open_highlight:&mut bool,
+		       is_open_note:&mut bool,
+) {
     egui::Window::new(fname)
         .default_open(true)
         .default_height(400.0)
@@ -17,13 +21,52 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
         // .constrain(true)
         .open(is_open)
         .show(ctx, |ui| {
+
+
+	    // render all popup windows
+	    for note in docl.notes.iter_mut(){
+		let tt_ti=match lang.as_str(){
+		    "zh"=>"添加评论",
+		    _=>"New comment"
+		};
+		let pos=ctx.input(|i|
+				  {i.pointer.hover_pos()}).unwrap();
+		egui::Window::new(tt_ti).open(&mut note.3)
+		    .default_pos(pos)
+		    .show(ctx, |ui|{
+		    ui.text_edit_multiline(&mut note.2);
+			// ui.horizontal_centered(|ui|{
+			    // let tt_ti=match lang.as_str(){
+			    // 	"zh"=>"确定",
+			    // 	_=>"Done"
+			    // };
+			    // if ui.button(tt_ti).clicked(){
+			    // 	note.3=false;
+			    // }
+			    // let tt_ti=match lang.as_str(){
+			    // 	"zh"=>"取消",
+			    // 	_=>"Cancel"
+			    // };
+			    // if ui.button(tt_ti).clicked(){
+			    // 	note.3=false;
+			    // 	note.2="".to_owned();
+			    // }
+
+			// });
+		});
+		
+	    }
+
             egui::SidePanel::left("headline")
                 .resizable(true)
                 .default_width(200.0)
                 .show_inside(ui, |ui| {
-                    // ui.heading("Headline of Books");
+		    let tt_ti=match lang.as_str(){
+			"zh"=>"u目录",
+			_=>"Headings"
+		    };
                     ui.vertical_centered(|ui| {
-                        ui.heading("Headline of Books");
+                        ui.heading(tt_ti);
                     });
                     egui::ScrollArea::vertical().show(ui, |ui| {
                         ui.label("111111");
@@ -68,34 +111,51 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
 			ui.label(tt_fz);
 			ui.add(egui::Slider::new(fontsz,
 				5.0..=20.0));
+
+			let tt_nt=match lang.as_str(){
+			    "zh"=>"标记评论",
+			    _=>"Comment somethings"
+			};
+			ui.checkbox(is_open_note, tt_nt);
 		    });
 		    ui.separator();
 
                     egui::ScrollArea::vertical().show(ui, |ui| {
-                        render_selected_text(ctx, ui, docl,
-			is_open_highlight, hlc, fontsz,);
+                        render_selected_text(ctx, ui,lang,
+					     docl,
+					     is_open_highlight,
+					     is_open_note,
+					     hlc, fontsz,);
                     });
                 });
+	    
+	    if (true).clone() {
             egui::SidePanel::right("notes")
                 .resizable(true)
                 .default_width(200.0)
                 .show_inside(ui, |ui| {
-                    ui.heading("Notes of Books");
-                    egui::ScrollArea::vertical().show(ui, |ui| {
-                        ui.label("111111");
-                        ui.label("222222");
-                        ui.label("111111");
-                        ui.label("111111");
-                    });
+
+		    let tt_ti=match lang.as_str(){
+			"zh"=>"评论",
+			_=>"Comments",
+		    };
+		    ui.vertical_centered(|ui| {
+			ui.heading(tt_ti);
+		    });
+
+		    render_notes_side_show(ui,lang,docl);
                 });
+	    }
         });
 }
 
 
 
 pub fn render_selected_text(ctx: &Context, ui: &mut egui::Ui,
+			    lang:&String,
 			    docl: &mut DocLabeled,
 			    is_open_highlight:&bool,
+			    is_open_note:&bool,
 			    hlc:&mut (u8,u8,u8), // highlight color
 			    fontsz:&mut f32,
 ) {
@@ -123,10 +183,82 @@ pub fn render_selected_text(ctx: &Context, ui: &mut egui::Ui,
         );
         if selected_chars.start != selected_chars.end
 	    && ctx.input(|i| i.pointer.any_released())
-	    && *is_open_highlight {
+	{
+	    if *is_open_highlight {
             docl.update_highlight(selected_chars.start, selected_chars.end, (*hlc).clone());
         }
+	    if *is_open_note{
+		docl.notes.push((selected_chars.start,
+				 selected_chars.end,
+				 "".to_owned(),
+				 true,false,
+		));
+	    }
+	}
+
+	    
     };
 }
 
 
+pub fn render_notes_side_show(ui:&mut egui::Ui, lang:& String,
+		    docl:&mut DocLabeled, ){
+    
+    egui::ScrollArea::vertical().show(ui,
+|ui| {
+
+    let mut if_del=false;
+    let mut i=0;
+    while i< docl.notes.len(){
+	if docl.notes[i].0==docl.notes[i].1{
+	    docl.notes.remove(i);
+	    continue;
+	}
+	let note=&mut docl.notes[i];
+
+	let sel_txt=docl.raw_text[note.0..((note.1)-1)].to_owned();
+	let nt=note.2.clone();
+
+	// now render the UI for it.
+	ui.label(sel_txt.as_str());
+	if note.4{
+	    ui.text_edit_multiline(&mut note.2);
+	}
+	else{
+	    ui.label(note.2.as_str());
+	}
+
+	ui.horizontal(|ui|{
+	    let tt_ti=match lang.as_str(){
+		"zh"=>"编辑",
+		_=>"Edit",
+	    };
+	    if ui.button(tt_ti).clicked(){
+		note.4=true;
+	    }
+	    let tt_ti=match lang.as_str(){
+		"zh"=>"结束编辑",
+		_=>"Edit Done",
+	    };
+	    if ui.button(tt_ti).clicked(){
+		note.4=false;
+	    }
+	    let tt_ti=match lang.as_str(){
+		"zh"=>"删除",
+		_=>"Delete it",
+	    };
+	    if ui.button(tt_ti).clicked(){
+		if if_del{
+		    ui.add(egui::Spinner::new());
+		}
+		else{
+		    *note=(0,0,"".to_owned(),false,false);
+		    if_del=true;
+		}
+	    }
+	});
+	i+=1;
+    }
+
+    });
+}

@@ -60,8 +60,9 @@ pub struct TemplateApp {
             // warning: This might be large!
             DocLabeled, // document related informaiton
 	    bool, // is open highlight or not
-	    (u8,u8,u8),
-	    f32,
+	    (u8,u8,u8), // highlight color
+	    f32, // font size of reader
+	    bool, //is open note function or not
         ),
     >,
 
@@ -407,7 +408,6 @@ impl eframe::App for TemplateApp {
                     }
 
 
-                ui.separator();
 
 		let tt_done=match lang.as_str(){"zh"=>"毕",_=>"Done."};
 		let tt_cp=match lang.as_str(){"zh"=>"复制之",_=>"Copy it."};
@@ -472,6 +472,8 @@ impl eframe::App for TemplateApp {
                             }
                         }
                     }
+
+                ui.separator();
 		
                 });
 
@@ -514,6 +516,7 @@ impl eframe::App for TemplateApp {
 			    reading_records.insert(String::from(fnme),
 						   (true,doc,false,
 						    (255,0,0),12.0,
+						    false,
 			    ));
 			}
 		}
@@ -528,7 +531,9 @@ impl eframe::App for TemplateApp {
 				    rec.0.as_str(),
 				    &mut rec.1.0,
 				    &mut rec.1.1,
-		    &mut rec.1.2);
+				    &mut rec.1.2,
+				    &mut rec.1.5
+		    );
 		}
             });
         

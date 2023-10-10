@@ -21,10 +21,12 @@ pub struct DocLabeled {
         usize,        // end index
         (u8, u8, u8), // R,G,B
     )>,
-    notes: Vec<(
+    pub notes: Vec<(
         usize,  // label begin index
         usize,  // label end index
         String, //the content what we noted.
+	bool, // POPUP window: if this note edit done or not.
+	bool, // side bar note show: if this note edited or not.
     )>,
     current_index: usize, // current index of person's reading.
     pub default_color: Color32,
@@ -34,7 +36,7 @@ impl DocLabeled {
     pub fn new(
         raw_text: String,
         highlights: Vec<(usize, usize, (u8, u8, u8))>,
-        notes: Vec<(usize, usize, String)>,
+        notes: Vec<(usize, usize, String,bool,bool)>,
         current_index: usize,
         default_color: Color32,
     ) -> DocLabeled {
@@ -114,12 +116,10 @@ impl DocLabeled {
         println!("highlight: {:?}", self.highlights);
     }
 
-    pub fn update_notes(&mut self, bg_idx: usize, end_idx: usize, note: String) {
-        self.notes.push((bg_idx, end_idx, note));
-    }
-
     /// render the struct text into the egui style rich texts.
     pub fn rendering(&self,fontsz:f32) -> LayoutJob {
+
+
 
         let light_color = Color32::WHITE;
 	let mut fid=egui::FontId{size:fontsz,..Default::default()};
