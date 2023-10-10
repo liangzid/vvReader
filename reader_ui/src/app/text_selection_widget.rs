@@ -1,6 +1,7 @@
 use std::ops::Range;
+use std::default::{self, Default};
 
-use egui::Context;
+use egui::{Context, TextFormat, FontFamily};
 use crate::app::documentFormat::DocLabeled;
 
 
@@ -30,7 +31,8 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
 		    _=>"New comment"
 		};
 		let pos=ctx.input(|i|
-				  {i.pointer.hover_pos()}).unwrap();
+				  {i.pointer.hover_pos()})
+		    .unwrap_or_default();
 		egui::Window::new(tt_ti).open(&mut note.3)
 		    .default_pos(pos)
 		    .show(ctx, |ui|{
@@ -62,7 +64,7 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
                 .default_width(200.0)
                 .show_inside(ui, |ui| {
 		    let tt_ti=match lang.as_str(){
-			"zh"=>"u目录",
+			"zh"=>"目录",
 			_=>"Headings"
 		    };
                     ui.vertical_centered(|ui| {
@@ -177,10 +179,10 @@ pub fn render_selected_text(ctx: &Context, ui: &mut egui::Ui,
     if let Some(cursor_range) = te.cursor_range {
         use egui::TextBuffer as _;
         let selected_chars = cursor_range.as_sorted_char_range();
-        println!(
-            "cursor_range:{:?}\n char_range:{:?}",
-            &cursor_range, selected_chars
-        );
+        // println!(
+        //     "cursor_range:{:?}\n char_range:{:?}",
+        //     &cursor_range, selected_chars
+        // );
         if selected_chars.start != selected_chars.end
 	    && ctx.input(|i| i.pointer.any_released())
 	{
@@ -220,7 +222,23 @@ pub fn render_notes_side_show(ui:&mut egui::Ui, lang:& String,
 	let nt=note.2.clone();
 
 	// now render the UI for it.
-	ui.label(sel_txt.as_str());
+
+	let bg=egui::Color32::RED;
+	let sc=egui::Color32::from_rgb(246, 229, 141);
+	let fid=egui::FontId{size:8.5,
+			     family:FontFamily::Monospace,
+			     ..Default::default()};
+	let mut job=egui::text::LayoutJob::default();
+	job.append(
+	    sel_txt.as_str(),
+	    0.0,
+	    egui::TextFormat{
+		color:sc.clone(),
+		background:bg.clone(),
+		font_id:fid.clone(),
+		..Default::default()
+	    });
+	ui.label(job);
 	if note.4{
 	    ui.text_edit_multiline(&mut note.2);
 	}
@@ -257,6 +275,7 @@ pub fn render_notes_side_show(ui:&mut egui::Ui, lang:& String,
 		}
 	    }
 	});
+	ui.separator();
 	i+=1;
     }
 

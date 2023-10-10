@@ -122,7 +122,7 @@ impl DocLabeled {
 
 
         let light_color = Color32::WHITE;
-	let mut fid=egui::FontId{size:fontsz,..Default::default()};
+	let fid=egui::FontId{size:fontsz,..Default::default()};
         let mut job = LayoutJob::default();
 
         let mut bgn_idx = 0;
