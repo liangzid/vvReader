@@ -1,7 +1,7 @@
 use egui::{text_edit::CCursorRange, *};
 use rfd;
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Clone,serde::Deserialize, serde::Serialize)]
 #[serde(default)]
 pub struct EasyMarkEditor {
     pub code: String,

@@ -12,7 +12,7 @@ use std::default::{self, Default};
 // }
 
 /// format the document for annotation and other things.
-#[derive(Default, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Default, Clone, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct DocLabeled {
     pub raw_text: String,

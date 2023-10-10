@@ -4,7 +4,7 @@ use serde;
 /// Highlight easymark, memoizing previous output to save CPU.
 ///
 /// In practice, the highlighter is fast enough not to need any caching.
-#[derive(Default, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Default, Debug,Clone, serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct MemoizedEasymarkHighlighter {
     style: egui::Style,

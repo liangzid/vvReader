@@ -17,10 +17,10 @@ mod password;
 mod text_selection_widget;
 mod utils;
 // mod md_editor_render;
+mod account;
 
 use crate::EasyMarkEditor;
 
-mod account;
 use account::{render_login_windows,render_signup_windows};
 use communicate::{activate, get_history, merge_records, push_record, query_login, signup};
 use documentFormat::DocLabeled;
@@ -39,6 +39,7 @@ pub struct Heading {
 }
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
+#[derive(Clone)]
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct TemplateApp {
@@ -106,7 +107,10 @@ impl Default for TemplateApp {
             pwd2: "".to_owned(),
             login_state: 0,
             user_type: "nothing".to_owned(),
-            activation_state: "not_activate".to_owned(),
+	    //
+	    // default as activated. Free for everyone!
+            // activation_state: "not_activate".to_owned(),
+            activation_state: "activate".to_owned(),
             utype_ls: vec![
                 "nothing".to_owned(),
                 "regular".to_owned(),
@@ -288,9 +292,9 @@ impl eframe::App for TemplateApp {
                 ui.label("批注：✔");
                 ui.label("数据于当前设备缓存：✔");
                 if activation_state=="not_activate"{
-                    ui.label("数据导出/导入：✖");
+                    ui.label("数据导出/导入：✔");
                     ui.label("跨设备云端存储：✖");
-                    ui.label("AI检索：✖");
+                    ui.label("AI检索：✔");
                 }
                 else{
                     ui.label("数据导出/导入：✔");
@@ -306,9 +310,9 @@ impl eframe::App for TemplateApp {
                 ui.label("Comment：✔");
                 ui.label("Store history in local deivce：✔");
                 if activation_state=="not_activate"{
-                    ui.label("Records Import/Export：✖");
+                    ui.label("Records Import/Export：✔");
                     ui.label("Cloud Storage and sync：✖");
-                    ui.label("AI-based Retrieval：✖");
+                    ui.label("AI-based Retrieval：✔");
                 }
                 else{
                     ui.label("Records Import/Export：✔");
@@ -366,10 +370,10 @@ impl eframe::App for TemplateApp {
                             *is_open_activate_help=true;
                         }
                         else{
-                            if let Some(path) = rfd::FileDialog::new().save_file() {
-				// todo: export.
-                                // let res = serde_json::to_string(historys).unwrap();
-                                // std::fs::write(path, res);
+                            if let Some(pth) = rfd::FileDialog::new().save_file() {
+                                let res = serde_json::to_string(&((*reading_records).clone(),
+			(*md_states).clone())).unwrap();
+                                let _=std::fs::write(pth, res);
                             }
                         }
                     }
@@ -398,18 +402,8 @@ impl eframe::App for TemplateApp {
 			_=>"clear"
 		    };
                     if ui.button(tt_clear).clicked() {
-			// todo: clear
-                        // *historys = vec![];
-                        // *comments = vec![];
-			// *place = "".to_owned();
-			// *analyse = "".to_owned();
-			// *temp_comment = "".to_owned();
-			// *pop_open = false;
-			// *current_point = 0;
-			// *is_open_import = false;
-			// *is_open_export = false;
-			// *is_visual=false;
-			
+			*reading_records = HashMap::new();
+			*md_states = vec![];
                     }
 
             let tt_exports=match lang.as_str(){
