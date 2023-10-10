@@ -145,7 +145,7 @@ impl DocLabeled {
         for record in self.highlights.iter() {
             if bgn_idx != record.0 {
                 job.append(
-                    &self.raw_text[bgn_idx..=record.0 - 1],
+                    &self.raw_text.char_range(bgn_idx..record.0),
                     0.0,
                     TextFormat {
                         color: self.default_color,
@@ -155,7 +155,7 @@ impl DocLabeled {
                 );
             }
             job.append(
-                &self.raw_text[record.0..=record.1 - 1],
+                &self.raw_text.char_range(record.0..record.1),
                 0.0,
                 TextFormat {
                     color: self.default_color,
@@ -168,7 +168,7 @@ impl DocLabeled {
         }
         if bgn_idx != end_idx {
             job.append(
-                &self.raw_text[bgn_idx..=end_idx - 1],
+                &self.raw_text.char_range(bgn_idx..end_idx ),
                 0.0,
                 TextFormat {
                     color: self.default_color,

@@ -1,7 +1,7 @@
 use std::ops::Range;
 use std::default::{self, Default};
 
-use egui::{Context, TextFormat, FontFamily};
+use egui::{Context, TextFormat, FontFamily, TextBuffer};
 use crate::app::documentFormat::DocLabeled;
 
 
@@ -59,7 +59,7 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
 		
 	    }
 
-            egui::SidePanel::left("headline")
+            egui::SidePanel::left(format!("headline-{}",fname))
                 .resizable(true)
                 .default_width(200.0)
                 .show_inside(ui, |ui| {
@@ -132,7 +132,7 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
                 });
 	    
 	    if (true).clone() {
-            egui::SidePanel::right("notes")
+            egui::SidePanel::right(format!("notes-{}",fname))
                 .resizable(true)
                 .default_width(200.0)
                 .show_inside(ui, |ui| {
@@ -218,7 +218,8 @@ pub fn render_notes_side_show(ui:&mut egui::Ui, lang:& String,
 	}
 	let note=&mut docl.notes[i];
 
-	let sel_txt=docl.raw_text[note.0..((note.1)-1)].to_owned();
+	let sel_txt=docl.raw_text
+    .char_range(note.0..note.1).to_owned();
 	let nt=note.2.clone();
 
 	// now render the UI for it.
