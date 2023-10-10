@@ -76,9 +76,10 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
 			};
 			ui.menu_button(tt_ti,|ui|{
 			
-			    ui.selectable_value(hlc, (251, 197, 49), "Bee Keeper");
-			    ui.selectable_value(hlc, (224, 86, 253), "Heliotrope");
-			    ui.selectable_value(hlc, (83, 82, 237), "Saturated Sky");
+			    ui.selectable_value(hlc, (255, 234, 167), "Bee Keeper");
+			    ui.selectable_value(hlc, (255,0,0), "Revolution");
+			    ui.selectable_value(hlc, (116, 185, 255), "Green Danger Tail");
+			    ui.selectable_value(hlc, (123, 237, 159), "Lime Soap");
 			} );
 			let tt_fz=match lang.as_str(){
 			    "zh"=>"字体大小:",

@@ -157,10 +157,12 @@ impl DocLabeled {
                     },
                 );
             }
-	    let cbgc=record.2.clone();
+	    let mut cbgc=record.2.clone();
 	    if self.is_dark{
-		let cbgc=(255-record.2.0, 255-record.2.1,
-	    255-record.2.2);
+		if record.2!=(255,0,0){
+		    cbgc=(255-record.2.0, 255-record.2.1,
+			  255-record.2.2);
+		}
 	    }
             job.append(
                 &self.raw_text.char_range(record.0..record.1),
