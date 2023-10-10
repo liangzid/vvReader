@@ -30,6 +30,7 @@ pub struct DocLabeled {
     )>,
     current_index: usize, // current index of person's reading.
     pub default_color: Color32,
+    pub is_dark:bool,
 }
 
 impl DocLabeled {
@@ -39,6 +40,7 @@ impl DocLabeled {
         notes: Vec<(usize, usize, String,bool,bool)>,
         current_index: usize,
         default_color: Color32,
+	is_dark:bool,
     ) -> DocLabeled {
         DocLabeled {
             raw_text: raw_text,
@@ -46,6 +48,7 @@ impl DocLabeled {
             notes: notes,
             current_index: current_index,
             default_color: default_color,
+	    is_dark:is_dark,
         }
     }
 
@@ -154,13 +157,18 @@ impl DocLabeled {
                     },
                 );
             }
+	    let cbgc=record.2.clone();
+	    if self.is_dark{
+		let cbgc=(255-record.2.0, 255-record.2.1,
+	    255-record.2.2);
+	    }
             job.append(
                 &self.raw_text.char_range(record.0..record.1),
                 0.0,
                 TextFormat {
                     color: self.default_color,
 		    font_id:fid.clone(),
-                    background: Color32::from_rgb(record.2 .0, record.2 .1, record.2 .2),
+                    background: Color32::from_rgb(cbgc.0,cbgc.1,cbgc.2),
                     ..Default::default()
                 },
             );
@@ -185,18 +193,18 @@ impl DocLabeled {
     // }
 }
 
-pub fn main() {
-    // test doclabeled.
-    let mut docl = DocLabeled::new(
-        "01234567890123456789".to_owned(),
-        vec![],
-        vec![],
-        0,
-        Color32::WHITE,
-    );
-    docl.update_highlight(0, 3, (255, 0, 0));
-    docl.update_highlight(1, 2, (255, 0, 0));
-    docl.update_highlight(1, 4, (255, 0, 0));
-    docl.update_highlight(6, 9, (255, 0, 0));
-    docl.update_highlight(3, 7, (255, 0, 0));
-}
+// pub fn main() {
+//     // test doclabeled.
+//     let mut docl = DocLabeled::new(
+//         "01234567890123456789".to_owned(),
+//         vec![],
+//         vec![],
+//         0,
+//         Color32::WHITE,
+//     );
+//     docl.update_highlight(0, 3, (255, 0, 0));
+//     docl.update_highlight(1, 2, (255, 0, 0));
+//     docl.update_highlight(1, 4, (255, 0, 0));
+//     docl.update_highlight(6, 9, (255, 0, 0));
+//     docl.update_highlight(3, 7, (255, 0, 0));
+// }

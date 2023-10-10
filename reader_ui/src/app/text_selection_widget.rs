@@ -14,10 +14,11 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
 		       is_open_highlight:&mut bool,
 		       is_open_note:&mut bool,
 ) {
+    docl.is_dark=is_dark;
     egui::Window::new(fname)
         .default_open(true)
-        .default_height(400.0)
-        .default_width(600.0)
+        .default_height(800.0)
+        .default_width(800.0)
         .collapsible(true)
         // .constrain(true)
         .open(is_open)
@@ -59,28 +60,9 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
 		
 	    }
 
-            egui::SidePanel::left(format!("headline-{}",fname))
-                .resizable(true)
-                .default_width(200.0)
-                .show_inside(ui, |ui| {
-		    let tt_ti=match lang.as_str(){
-			"zh"=>"目录",
-			_=>"Headings"
-		    };
-                    ui.vertical_centered(|ui| {
-                        ui.heading(tt_ti);
-                    });
-                    egui::ScrollArea::vertical().show(ui, |ui| {
-                        ui.label("111111");
-                        ui.label("111111");
-                        ui.label("111111");
-                        ui.label("111111");
-                    });
-                });
-            egui::CentralPanel::default()
-                // .show(ui, |ui|{
-                .show_inside(ui, |ui| {
-
+	    egui::TopBottomPanel::top(format!("top-{}",fname))
+		.show_separator_line(true)
+		.show_inside(ui, |ui|{
 		    // add menu bar here.
 		    ui.horizontal(|ui|{
 			let tt_ti=match lang.as_str(){
@@ -94,17 +76,9 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
 			};
 			ui.menu_button(tt_ti,|ui|{
 			
-			    if is_dark{
-				
-			    ui.selectable_value(hlc, (71, 71, 135), "THEME I");
-			    ui.selectable_value(hlc, (12, 36, 97), "THEME II");
-			    ui.selectable_value(hlc, (183, 21, 64), "THEME III");
-			    }
-			    else{
-			    ui.selectable_value(hlc, (246, 229, 141), "Bee Keeper");
+			    ui.selectable_value(hlc, (251, 197, 49), "Bee Keeper");
 			    ui.selectable_value(hlc, (224, 86, 253), "Heliotrope");
-			    ui.selectable_value(hlc, (106, 176, 76), "Pure Apple");
-			    }
+			    ui.selectable_value(hlc, (83, 82, 237), "Saturated Sky");
 			} );
 			let tt_fz=match lang.as_str(){
 			    "zh"=>"字体大小:",
@@ -120,23 +94,31 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
 			};
 			ui.checkbox(is_open_note, tt_nt);
 		    });
-		    ui.separator();
+		    // ui.separator();
+		});
 
-                    egui::ScrollArea::vertical().show(ui, |ui| {
-                        render_selected_text(ctx, ui,lang,
-					     docl,
-					     is_open_highlight,
-					     is_open_note,
-					     hlc, fontsz,);
-                    });
-                });
-	    
-	    if (true).clone() {
-            egui::SidePanel::right(format!("notes-{}",fname))
+
+            egui::SidePanel::left(format!("headline-{}",fname))
                 .resizable(true)
-                .default_width(200.0)
                 .show_inside(ui, |ui| {
+		    let tt_ti=match lang.as_str(){
+			"zh"=>"目录",
+			_=>"Headings"
+		    };
+                    ui.vertical_centered(|ui| {
+                        ui.heading(tt_ti);
+                    });
+                    egui::ScrollArea::vertical()
+			.id_source(format!("bookmark-{}",fname))
+                        .max_height(300.0)
+			.show(ui, |ui| {
+                        ui.label("111111");
+                        ui.label("111111");
+                        ui.label("111111");
+                        ui.label("111111");
+                    });
 
+		    ui.separator();
 		    let tt_ti=match lang.as_str(){
 			"zh"=>"评论",
 			_=>"Comments",
@@ -146,8 +128,25 @@ pub fn open_one_reader(ctx: &Context,is_dark:bool,
 		    });
 
 		    render_notes_side_show(ui,lang,docl);
+
+
                 });
-	    }
+
+
+            egui::CentralPanel::default()
+                // .show(ctx, |ui|{
+                .show_inside(ui, |ui| {
+                    egui::ScrollArea::both()
+                        // .max_width(400.0)
+			.show(ui, |ui| {
+                        render_selected_text(ctx, ui,lang,
+					     docl,
+					     is_open_highlight,
+					     is_open_note,
+					     hlc, fontsz,);
+                    });
+                });
+	    
         });
 }
 
@@ -225,8 +224,8 @@ pub fn render_notes_side_show(ui:&mut egui::Ui, lang:& String,
 	// now render the UI for it.
 
 	let bg=egui::Color32::RED;
-	let sc=egui::Color32::from_rgb(246, 229, 141);
-	let fid=egui::FontId{size:8.5,
+	let sc=egui::Color32::from_rgb(53, 59, 72);
+	let fid=egui::FontId{size:12.0,
 			     family:FontFamily::Monospace,
 			     ..Default::default()};
 	let mut job=egui::text::LayoutJob::default();

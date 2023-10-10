@@ -465,6 +465,7 @@ impl eframe::App for TemplateApp {
 				ct,vec![],
 				vec![],0,
 				(*default_color).clone(),
+				(*is_dark_theme).clone(),
 			    );			    
 			    let newpth=uploadpath.clone();
 			    let fnme=newpth
