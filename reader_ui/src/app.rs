@@ -168,9 +168,9 @@ impl TemplateApp {
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
         // close the state storage
-        // if let Some(storage) = cc.storage {
-        //     return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
-        // }
+        if let Some(storage) = cc.storage {
+            return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+        }
 
         Default::default()
     }

@@ -1,0 +1,105 @@
+#+title: ViceVersa Reader: Another boring and useless text reader
+#+date: Wed Oct 11 07:35:36 2023
+#+author: Zi Liang
+#+email: liangzid@stu.xjtu.edu.cn
+#+latex_class: elegantpaper
+#+filetags: ::
+
+NOTE: this project is still under active development. Feel free to open an issue.
+
+[[file:images/vvreader-demo1.png]]
+
+** Install it & Build it.
+
+
+
+
+*** Using existing binary files
+Check here:
+*** Native Build
+
+At first, install =rust= , then:
+
+#+BEGIN_SRC sh
+  cd reader_ui/
+  cargo run --release
+  # or: cargo build --release
+#+END_SRC
+
+In *linux* you might install some libs by
+
+
+#+BEGIN_SRC sh
+   sudo apt-get install libxcb-render0-dev libxcb-shape0-dev\
+  libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+#+END_SRC
+*** Wasm 
+
+#+BEGIN_SRC sh
+  # 1. install trunk
+  cargo install --locked trunk
+
+  # 2. locally debug
+  trunk serve # on http://127.0.0.1:8080/index.html#dev
+
+  # 3. release WSAM
+  trunk build --release
+#+END_SRC
+
+** Planning 
+*** INPROGRESS rendering 
+**** DONE text file
+CLOSED: [2023-10-11 Wed 07:56]
+**** TODO [#A] EPUB files
+**** TODO [#A] Docx files
+**** TODO [#C] Pdf files
+*** DONE highlight
+CLOSED: [2023-10-11 Wed 07:58]
+**** DONE text highlight
+CLOSED: [2023-10-11 Wed 07:58]
+**** DONE save & load highlight
+CLOSED: [2023-10-11 Wed 07:58]
+*** INPROGRESS comments 
+**** DONE comment it
+CLOSED: [2023-10-11 Wed 07:59]
+**** DONE save & load comments 
+CLOSED: [2023-10-11 Wed 07:59]
+**** TODO [#B] UI: the highlight of quote texts
+**** TODO [#B] local quote text from reader.
+*** INPROGRESS notes
+**** INPROGRESS markdown editor to take notes
+***** DONE basic functions
+CLOSED: [2023-10-11 Wed 08:01]
+***** TODO [#C] image support
+**** INPROGRESS notes management
+***** DONE save & read notes
+CLOSED: [2023-10-11 Wed 08:01]
+***** TODO [#C] a directory to recent notes
+*** TODO robustness
+**** TODO [#A] error handling
+**** TODO [#C] cpu & memory cost analysis
+*** TODO [#A] catalog parsing
+**** TODO [#A] File types for parsing
+***** TODO txt
+***** TODO md
+***** TODO org
+***** TODO epub
+***** TODO html
+***** TODO docx
+***** TODO pdf
+**** TODO [#A] bookmark management
+**** TODO [#B] track the place of a *catalog* or *mark*
+*** TODO [#C] Recent books
+**** TODO [#C] list of recent books
+**** TODO [#C] books management
+*** INPROGRESS Account related
+**** DONE free to everyone: activated default
+CLOSED: [2023-10-11 Wed 08:13]
+**** DONE account registion & login
+CLOSED: [2023-10-11 Wed 08:13]
+**** TODO [#B] backup key information &states
+
+
+
+
+
