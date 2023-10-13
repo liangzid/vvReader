@@ -239,6 +239,9 @@ impl eframe::App for TemplateApp {
             activation_state,
         );
 
+	let rt=tokio::runtime::Builder::new_current_thread()
+                    .enable_all().build().unwrap();
+
         render_donate_win(ctx, is_open_payment_qr, lang);
 
         egui::SidePanel::left("options")
@@ -491,9 +494,11 @@ impl eframe::App for TemplateApp {
                     "zh" => "阅读本地文件",
                     _ => "Read a file from local",
                 };
+                #[cfg(not(target_arch = "wasm32"))]
                 if ui.button(tt_loadlocalf).clicked() {
                     // open a file picker and then load the files.
-                    if let Some(uploadpath) = rfd::FileDialog::new().pick_file() {
+                    if let Some(uploadpath) = rfd::FileDialog
+			::new().pick_file() {
                         let ct = std::fs::read_to_string(uploadpath.clone()).unwrap();
                         if !uploadpath.clone().ends_with(".txt") {
                             let tt_file_us = match lang.as_str() {
@@ -537,6 +542,7 @@ impl eframe::App for TemplateApp {
                     "zh" => "加载过去的笔记",
                     _ => "Load past notes",
                 };
+                #[cfg(not(target_arch = "wasm32"))]
                 if ui.button(ttmd).clicked() {
                     if let Some(rfl) = rfd::FileDialog::new().pick_file() {
                         // first obtain the filename.

@@ -10,10 +10,6 @@ NOTE: this project is still under active development. Feel free to open an issue
 [[file:images/vvreader-demo1.png]]
 
 ** Install it & Build it.
-
-
-
-
 *** Using existing binary files
 Check here:
 *** Native Build

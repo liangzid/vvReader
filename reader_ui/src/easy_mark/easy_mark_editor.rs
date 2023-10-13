@@ -69,6 +69,7 @@ impl EasyMarkEditor {
 	    let tth=match self.lang.as_str(){
 		"zh"=>"保存为",_=>"Save as",
 	    };
+            #[cfg(not(target_arch = "wasm32"))]
 	    if ui.button(tth).clicked(){
 		if let Some(path)=rfd::FileDialog::new()
 		    .save_file(){
@@ -76,7 +77,6 @@ impl EasyMarkEditor {
 				       self.code.clone());
 			*fname=path.to_str().unwrap().to_owned();
 		}
-
 	    }
 	    let tth=match self.lang.as_str(){
 		"zh"=>"保存",_=>"Save",
