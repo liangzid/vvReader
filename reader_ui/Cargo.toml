@@ -9,7 +9,6 @@ default-run = "main"
 # chrono = ["egui_extras/datepicker", "dep:chrono"]
 # js = ["zhouyi_ui/js"]
 
-
 [dependencies]
 getrandom = {version = "0.2.9", features= ["js"]}
 egui = {version="0.22.0"}
