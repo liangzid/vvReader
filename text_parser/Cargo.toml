@@ -15,3 +15,9 @@ name="main"
 path="src/main.rs"
 test=true
 bench=false
+
+# [[bin]]
+# name="parse_txt"
+# path="src/parse_text.rs"
+# test=true
+# bench=false
