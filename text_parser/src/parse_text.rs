@@ -1,20 +1,9 @@
 use std::path::Path;
 use std;
-use std::default::{self, Default};
-use std::{collections::HashMap, hash::Hash};
-use serde;
 use regex;
-use serde_json;
+use crate::format::{Heading,RawStructruedText};
 
-#[derive(Default, Debug, serde::Deserialize, serde::Serialize)]
-#[serde(default)] // if we add new fields, give them default values when deserializing old state
-pub struct Heading{
-    name:String,
-    location:usize,
-    level:u8,
-}
-
-pub fn parse_text(pth:&Path, use_newline:bool)->Vec<Heading>{
+pub fn parse_text(pth:&Path, use_newline:bool)->(Vec<Heading>,String){
 
     let mut headings=vec![];
     
@@ -91,9 +80,7 @@ pub fn parse_text(pth:&Path, use_newline:bool)->Vec<Heading>{
 	headings.push(Heading{name:(*h).to_owned(),
 			      location:locate,level:1});
     }
-    headings
-
-    
+    (headings,content)
 }
 
 fn find_substr_position(s:&str,sub:&str)->usize{

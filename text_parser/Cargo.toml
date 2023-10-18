@@ -9,6 +9,8 @@ edition = "2021"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 regex ={version="1.10"}
+# epub ={version="1.2"}
+epubparse ={version="0.2"}
 
 [[bin]]
 name="main"
@@ -21,3 +23,9 @@ bench=false
 # path="src/parse_text.rs"
 # test=true
 # bench=false
+
+[[bin]]
+name="parse_epub"
+path="src/parse_epub.rs"
+test=true
+bench=false
