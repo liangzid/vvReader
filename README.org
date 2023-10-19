@@ -46,7 +46,8 @@ In *linux* you might install some libs by
 *** INPROGRESS rendering 
 **** DONE text file
 CLOSED: [2023-10-11 Wed 07:56]
-**** TODO [#A] EPUB files
+**** DONE [#A] EPUB files
+CLOSED: [2023-10-19 Thu 20:54]
 **** TODO [#A] Docx files
 **** TODO [#C] Pdf files
 *** DONE highlight
@@ -76,10 +77,12 @@ CLOSED: [2023-10-11 Wed 08:01]
 **** TODO [#C] cpu & memory cost analysis
 *** TODO [#A] catalog parsing
 **** TODO [#A] File types for parsing
-***** TODO txt
+***** DONE txt
+CLOSED: [2023-10-19 Thu 20:53] DEADLINE: <2023-10-19 Thu>
 ***** TODO md
 ***** TODO org
-***** TODO epub
+***** DONE epub
+CLOSED: [2023-10-19 Thu 20:53]
 ***** TODO html
 ***** TODO docx
 ***** TODO pdf

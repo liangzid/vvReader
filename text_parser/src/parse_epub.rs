@@ -19,6 +19,7 @@ pub fn parse_epub(pth:&Path)->RawStructruedText{
 			   level:i as u8
 	});
 	overall_content=overall_content+&x.text;
+	overall_content=overall_content+"\n";
 	if x.subchapters.len()==0{continue;}
 	else{
 	    i+=1;
@@ -28,6 +29,7 @@ pub fn parse_epub(pth:&Path)->RawStructruedText{
 			   level:i as u8
 		});
 		overall_content=overall_content+&xx.text;
+		overall_content=overall_content+"\n";
 		if xx.subchapters.len()==0{continue;}
 		else{
 		    i+=1;
@@ -37,16 +39,18 @@ pub fn parse_epub(pth:&Path)->RawStructruedText{
 					   level:i as u8
 			});
 			overall_content=overall_content+&xxx.text;
+			overall_content=overall_content+"\n";
 			if xxx.subchapters.len()==0{continue;}
 			else{
 			    i+=1;
 			    for xxxx in xxx.subchapters.iter(){
-				heads.push(Heading{name:xxx.title.clone(),
+				heads.push(Heading{name:xxxx.title.clone(),
 					   location:overall_content.len(),
 					   level:i as u8
 				});
-				overall_content=overall_content+&xxx.text;
-				if xxx.subchapters.len()==0{continue;}
+				overall_content=overall_content+&xxxx.text;
+				overall_content=overall_content+"\n";
+				if xxxx.subchapters.len()==0{continue;}
 				else{
 				    println!("Warnning!")
 				}

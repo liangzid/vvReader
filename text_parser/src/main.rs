@@ -10,8 +10,11 @@ use parse_text::{parse_text};
 mod parse_epub;
 use parse_epub::parse_epub;
 
+mod parse_docx;
+use parse_docx::parse_docx;
+
 // pub mod format;
-use format::{Heading,RawStructruedText};
+use text_parser::format::{Heading,RawStructruedText};
 
 
 pub fn ExtractHeadline(pth:&Path)->RawStructruedText{
@@ -23,6 +26,9 @@ pub fn ExtractHeadline(pth:&Path)->RawStructruedText{
 	res.heads=temp.0;res.raw_text=temp.1;
 	}
     else if fname.ends_with(".epub") {
+	res=parse_epub(pth);
+    }
+    else if fname.ends_with(".md"){
 	
     }
     

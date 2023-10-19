@@ -11,6 +11,7 @@ serde_json = "1"
 regex ={version="1.10"}
 # epub ={version="1.2"}
 epubparse ={version="0.2"}
+docx-rust={version="0.1.5"}
 
 [[bin]]
 name="main"
@@ -24,8 +25,14 @@ bench=false
 # test=true
 # bench=false
 
+# [[bin]]
+# name="parse_epub"
+# path="src/parse_epub.rs"
+# test=true
+# bench=false
+
 [[bin]]
-name="parse_epub"
-path="src/parse_epub.rs"
+name="parse_docx"
+path="src/parse_docx.rs"
 test=true
 bench=false
