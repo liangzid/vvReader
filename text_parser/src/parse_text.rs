@@ -1,7 +1,7 @@
 use std::path::Path;
 use std;
 use regex;
-use crate::format::{Heading,RawStructruedText};
+use text_parser::format::{Heading,RawStructruedText};
 
 pub fn parse_text(pth:&Path, use_newline:bool)->(Vec<Heading>,String){
 
