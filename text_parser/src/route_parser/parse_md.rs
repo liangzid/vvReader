@@ -1,7 +1,7 @@
 use std::path::Path;
 use std;
 use regex;
-use text_parser::format::{Heading,RawStructruedText};
+use crate::format::{Heading,RawStructruedText};
 
 pub fn parse_md(pth:&Path)->RawStructruedText{
     parse_mdorg(pth, "#".to_owned())

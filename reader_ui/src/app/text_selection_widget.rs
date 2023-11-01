@@ -1,8 +1,10 @@
+use std::collections::HashMap;
 use std::default::{self, Default};
 use std::ops::Range;
 
 use crate::app::documentFormat::DocLabeled;
 use egui::{Context, FontFamily, TextBuffer, TextFormat};
+use text_parser::RawStructruedText;
 
 pub fn open_one_reader(
     ctx: &Context,
@@ -109,12 +111,19 @@ pub fn open_one_reader(
                         .id_source(format!("bookmark-{}", fname))
                         .max_height(300.0)
                         .show(ui, |ui| {
-                            ui.label("111111");
-                            ui.label("111111");
-                            ui.label("111111");
-                            ui.label("111111");
+			    // rendering the headers
+			    for (h1,v1) in docl.tree.clone().into_iter(){
+			ui.collapsing(h1.0, |ui|{
+			    for (h2, v2) in v1.into_iter(){
+				ui.collapsing(h2.0,|ui|{
+				    for h3 in v2.into_iter(){
+					ui.label(h3.0);
+				    }
+				});
+				}
+				});
+			    }
                         });
-
                     ui.separator();
                     let tt_ti = match lang.as_str() {
                         "zh" => "评论",

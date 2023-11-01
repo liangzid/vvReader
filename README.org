@@ -48,7 +48,8 @@ In *linux* you might install some libs by
 CLOSED: [2023-10-11 Wed 07:56]
 **** DONE [#A] EPUB files
 CLOSED: [2023-10-19 Thu 20:54]
-**** TODO [#A] Docx files
+**** CANCELED [#A] Docx files
+CLOSED: [2023-11-01 Wed 11:23]
 **** TODO [#C] Pdf files
 *** DONE highlight
 CLOSED: [2023-10-11 Wed 07:58]

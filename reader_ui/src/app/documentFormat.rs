@@ -5,7 +5,10 @@ use egui::TextBuffer;
 use egui::TextFormat;
 use serde;
 use serde_json;
+use text_parser::Heading;
 use std::default::{self, Default};
+
+use std::collections::HashMap;
 
 // pub enum THEME{
 //     I
@@ -16,6 +19,10 @@ use std::default::{self, Default};
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct DocLabeled {
     pub raw_text: String,
+    pub heads: Vec<Heading>,
+    pub tree:HashMap<(String,usize),
+		HashMap<(String,usize),
+		Vec<(String,usize)>>>,
     highlights: Vec<(
         usize,        // begin index
         usize,        // end index
@@ -36,6 +43,10 @@ pub struct DocLabeled {
 impl DocLabeled {
     pub fn new(
         raw_text: String,
+	heads: Vec<Heading>,
+	tree: HashMap<(String,usize),
+		HashMap<(String,usize),
+		Vec<(String,usize)>>>,
         highlights: Vec<(usize, usize, (u8, u8, u8))>,
         notes: Vec<(usize, usize, String, bool, bool)>,
         current_index: usize,
@@ -44,6 +55,8 @@ impl DocLabeled {
     ) -> DocLabeled {
         DocLabeled {
             raw_text: raw_text,
+	    heads: heads,
+	    tree: tree,
             highlights: highlights,
             notes: notes,
             current_index: current_index,

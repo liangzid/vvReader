@@ -10,6 +10,8 @@ use rfd;
 use serde;
 use serde_json;
 
+use text_parser::{Heading,RawStructruedText,ExtractHeadline};
+
 mod communicate;
 mod documentFormat;
 mod donate;
@@ -30,13 +32,6 @@ use text_selection_widget::{open_one_reader, render_selected_text};
 use utils::code_view_ui;
 // use md_editor_render::render_md_editor;
 
-/// We derive Deserialize/Serialize so we can persist app state on shutdown.
-#[derive(Default, Debug, serde::Deserialize, serde::Serialize)]
-#[serde(default)] // if we add new fields, give them default values when deserializing old state
-pub struct Heading {
-    head_name: String,
-    head_position: i32,
-}
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(Clone, serde::Deserialize, serde::Serialize)]
@@ -499,7 +494,8 @@ impl eframe::App for TemplateApp {
                     // open a file picker and then load the files.
                     if let Some(uploadpath) = rfd::FileDialog
 			::new().pick_file() {
-                        let ct = std::fs::read_to_string(uploadpath.clone()).unwrap();
+			    let stxts=ExtractHeadline(&uploadpath);
+                        // let ct = std::fs::read_to_string(uploadpath.clone()).unwrap();
                         if !uploadpath.clone().ends_with(".txt") {
                             let tt_file_us = match lang.as_str() {
                                 "zh" => "不支持的文件类型",
@@ -512,7 +508,9 @@ impl eframe::App for TemplateApp {
                         // println!("ct: {}", &ct);
 
                         let mut doc = DocLabeled::new(
-                            ct,
+                            stxts.raw_text.clone(),
+			    stxts.heads.clone(),
+			    RawStructruedText::transfer2tree(&stxts.heads),
                             vec![],
                             vec![],
                             0,

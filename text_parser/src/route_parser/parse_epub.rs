@@ -1,4 +1,4 @@
-use text_parser::format::{Heading,RawStructruedText};
+use crate::format::{Heading,RawStructruedText};
 use std::path::Path;
 use epubparse::epub_to_book;
 
