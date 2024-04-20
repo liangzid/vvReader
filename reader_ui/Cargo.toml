@@ -1,5 +1,5 @@
 [package]
-name = "vvreader_ui"
+name = "reader_ui"
 version = "0.1.0"
 authors = ["Zi Liang <2273067585@qq.com>"]
 edition = "2021"

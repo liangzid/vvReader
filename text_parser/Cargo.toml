@@ -36,3 +36,7 @@ name="parse_docx"
 path="src/parse_docx.rs"
 test=true
 bench=false
+
+[lib]
+name = "text_parser"
+path = "src/lib.rs"
