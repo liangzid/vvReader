@@ -1,4 +1,4 @@
-var cacheName = 'egui-template-pwa';
+var cacheName = 'vvreader-zl';
 var filesToCache = [
   './',
   './index.html',
